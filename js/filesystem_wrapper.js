@@ -10,6 +10,38 @@ class FILESYSTEM{
         this.FS_ALL_DIV = document.createElement("div");
         this.FS_ALL_DIV.classList.add("fs");
 
+        this.FS_HEADER_DIV = document.createElement("div");
+        this.FS_HEADER_DIV.classList = "fs_header uk-button-group";
+        this.FS_ALL_DIV.appendChild(this.FS_HEADER_DIV);
+
+        this.FS_NEW_PROJECT_BTN = document.createElement("button");
+        this.FS_NEW_PROJECT_BTN.classList = " uk-button uk-button-primary uk-button-mini uk-width-1-1";
+        this.FS_NEW_PROJECT_BTN.id = "ProjectViewBTN";
+        this.FS_NEW_PROJECT_BTN.onclick = () => {this.onProjectView()};
+        this.FS_NEW_PROJECT_BTN.innerText = "My View";
+        this.FS_NEW_PROJECT_BTN.title = "Switches to My View";
+        this.FS_HEADER_DIV.appendChild(this.FS_NEW_PROJECT_BTN);
+
+        this.FS_NEW_PROJECT_BTN = document.createElement("button");
+        this.FS_NEW_PROJECT_BTN.classList = " uk-button uk-button-primary uk-button-mini uk-width-1-1";
+        this.FS_NEW_PROJECT_BTN.id = "FileViewBTN";
+        this.FS_NEW_PROJECT_BTN.onclick = () => {this.onFileView()};
+        this.FS_NEW_PROJECT_BTN.innerText = "View All";
+        this.FS_NEW_PROJECT_BTN.title = "Switches to view all files";
+        this.FS_HEADER_DIV.appendChild(this.FS_NEW_PROJECT_BTN);
+
+        this.FS_USER_GROUP = document.createElement("div");
+        this.FS_USER_GROUP.classList = "fs_user";
+        this.FS_ALL_DIV.appendChild(this.FS_USER_GROUP);
+
+        this.FS_USER = document.createElement("div");
+        this.FS_USER.innerHTML = "&nbsp;User:";
+        this.FS_USER_GROUP.appendChild(this.FS_USER);
+
+        this.FS_USER_DROPDOWN = document.createElement("select");
+        this.FS_USER_DROPDOWN.onchange = () => {this.onUserSelect()};
+        this.FS_USER_GROUP.appendChild(this.FS_USER_DROPDOWN)
+
         this.FS_STORAGE_BAR_PARENT_DIV = document.createElement("div");
         this.FS_STORAGE_BAR_PARENT_DIV.classList = "fs_storage_bar_parent";
         this.FS_ALL_DIV.appendChild(this.FS_STORAGE_BAR_PARENT_DIV);
@@ -108,6 +140,8 @@ class FILESYSTEM{
         this.FS_TREE.reload();                                           // Always use this when you change the TreeView or any of its nodes
         //this.FS_TREE.collapseAllNodes();
 
+        this.FS_USER_ITEM = document.querySelector('.user-view');
+
         this.clearToWaiting();
 
         // Typically used for refreashing tree with nodes in disabled or enabled state
@@ -165,6 +199,30 @@ class FILESYSTEM{
     //     // this.FS_REFRESH_BTN.disabled = false;
     // }
 
+    onProjectView(){
+        if(REPL.DISCONNECT){
+            return;
+        }
+        localStorage.setItem("dirView", "project");
+        this.FS_USER_GROUP.hidden = false;
+        this.FS_AREA_DIV.innerText = "";
+        this.updateProjJD(this.LAST_JSON_DATA);
+    }
+
+    onFileView(){
+        if(REPL.DISCONNECT){
+            return;
+        }
+        localStorage.setItem("dirView", "file");
+        this.FS_USER_GROUP.hidden = true;
+        this.updateTreeJD(this.LAST_JSON_DATA);
+    }
+
+    onUserSelect(){
+        var user = this.FS_USER_DROPDOWN.value;
+        localStorage.setItem("projUser", user);
+        this.updateProjJD(this.LAST_JSON_DATA);
+    }
 
     updateStorageBar(sizeData){
         let blockSizeBytes = parseInt(sizeData[0]);
@@ -186,9 +244,47 @@ class FILESYSTEM{
         }
 
         this.FS_STORAGE_BAR_DIV.innerHTML = "&nbsp;Storage: " + (usedBytes/1000000).toFixed(2) + "/" + (totalBytes/1000000).toFixed(1) + " MB";
+
+        // if in project mode update the user list
+        var dirNames = this.getUsers();
+        
+        this.FS_USER_DROPDOWN.innerHTML = ''; //reset the dropdown to no options
+
+        var selUser = localStorage.getItem("projUser");
+        if(selUser == null){
+            selUser = dirNames[0];
+            localStorage.setItem("projUser", selUser);
+        }
+        var nameFound = false; //what if the user we stored off is no longer there?
+
+        dirNames.forEach(dirName => {  
+            const option = document.createElement('option');
+            option.value = dirName;
+            option.textContent = dirName;
+            if(dirName === selUser){
+                option.selected = true;
+                nameFound = true;
+            }
+            this.FS_USER_DROPDOWN.appendChild(option);
+        });
+        if(!nameFound){
+            selUser = dirNames[0];
+            localStorage.setItem("projUser", selUser);
+        }
     }
 
-
+    getUsers(){
+        var dirNames = [];
+        for (const [key, value] of Object.entries(this.LAST_JSON_DATA[''])) {
+            if (value.hasOwnProperty('D')){
+                const dirName = value['D']
+                if (dirName !== "lib" && dirName !== "trash") {
+                    dirNames.push(dirName);
+                }
+            }
+        }
+        return dirNames;
+    }
     // Recursively traverse the directory tree starting at the right-clicked dir and download all files
     async downloadChildren(parent){
         var childNodes = parent.getChildren();
@@ -496,6 +592,66 @@ class FILESYSTEM{
         this.FS_AREA_DIV.style.display = "block";
         var jsonData = JSON.parse(jsonStrData);
         this.LAST_JSON_DATA  = jsonData;
+        if(localStorage.getItem("dirView") === "project"){
+            this.updateProjJD(jsonData);
+        }
+        else{
+            this.updateTreeJD(jsonData);
+        }
+    }
+
+    updateProjJD(jsonData){
+        var user = localStorage.getItem("projUser");
+        var dirObj = jsonData[''][user];
+        var fileNames = [];
+        for (const [key, value] of Object.entries(dirObj)) {
+            if (value.hasOwnProperty('F'))
+                fileNames.push(value['F']);
+        }
+
+        this.FS_AREA_DIV.innerHTML="";
+        
+        fileNames.forEach(fileName => {
+
+            const lastDotIndex = fileName.lastIndexOf('.');
+            var name = fileName;
+            var extension = "";
+            // If there is no '.', return the whole name and an empty string for the extension
+            if (lastDotIndex != -1){
+                // Split the filename and extension
+                name = fileName.substring(0, lastDotIndex);
+                extension = fileName.substring(lastDotIndex + 1);
+            }
+
+            const template = this.FS_USER_ITEM.cloneNode(true);
+            template.style.display = "block";
+            template.querySelector('.user-name').textContent = name;
+            template.querySelector('.user-full-name').textContent = "/" + user + "/" + fileName;
+            var te = template.querySelector('.file-type');
+            if(extension === "blocks"){
+                te.src = "images/blockly.svg";
+            }
+            else{
+                te.src = "images/micropython.png";
+
+            }
+            var projButton = template.querySelector("#openUser")
+            projButton.onclick = (event) => {
+                var te = event.target;
+                var pfnNode = te.nextElementSibling;
+
+                var path = pfnNode.innerText;
+
+                this.onOpen(path);
+            };
+            this.FS_AREA_DIV.appendChild(template);
+            
+        });
+        
+        
+    }
+
+    updateTreeJD(jsonData){
         this.FS_ROOT = new TreeNode("\\");   // Start new tree from start/root
         this.addChildrenToNode(this.FS_ROOT, jsonData[""]);
         this.FS_TREE = new TreeView(this.FS_ROOT, this.FS_AREA_DIV);   // Render to webpage element

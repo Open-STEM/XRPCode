@@ -51,17 +51,99 @@ class EditorWrapper{
             this.setTitle("Choose Mode");
             // this.HEADER_TOOLBAR_DIV.innerHTML = "Please choose your Editor preference:";
 
+            const clone = document.querySelector('#new-file');
+
+            const template = clone.cloneNode(true);
+            template.removeAttribute('id');
+
+            template.style.display = "block";
+            this.EDITOR_DIV.appendChild(template);
+            const pUser = localStorage.getItem("projUser");
+            var users = [];
+            if(REPL.DISCONNECT == true){
+                users.push(pUser);
+            }else {
+                users = FS.getUsers();
+            }
+
+            const userDropdown = template.querySelector("#user-dropdown");
+            const projectNameInput = template.querySelector("#file-name");
+            const createButton = template.querySelector("#create-btn");
+            const micropythonIcon = template.querySelector("#micropython");
+            const blocklyIcon = template.querySelector("#blockly");
+            let selectedPlatform = "";
+
+            updateDropdown(pUser);
+
+            function updateDropdown(newUser = null) {
+                userDropdown.innerHTML = users.map(user => `<option value="${user}">${user}</option>`).join('');
+
+                if(newUser){
+                    userDropdown.value = newUser;
+                }
+            }
+
+            template.querySelector("#add-user-btn").onclick = async () =>  {
+                var [ans, newUser] = await window.promptMessage("Enter new user name","");
+                if (ans) {
+                    users.push(newUser);
+                    updateDropdown(newUser);
+                }
+            };
+
+            function updateCreateButtonState() {
+                const projectName = projectNameInput.value.trim();
+                const isUserSelected = userDropdown.value;
+                createButton.disabled = !(projectName && selectedPlatform && isUserSelected);
+            }
+
+            projectNameInput.addEventListener("input", updateCreateButtonState);
+
+            const selectPlatform = (platform) => {
+                selectedPlatform = platform;
+                micropythonIcon.classList.toggle("platform-icon-highlighted", platform === "micropython");
+                blocklyIcon.classList.toggle("platform-icon-highlighted", platform === "blockly");
+                updateCreateButtonState();
+            }
+
+            micropythonIcon.onclick =  () => {selectPlatform("micropython")};
+            blocklyIcon.onclick =  () => selectPlatform("blockly");
+            
+            template.querySelector("#create-btn").onclick = async () => {
+                const user = userDropdown.value;
+                const projName = projectNameInput.value;
+                
+                localStorage.setItem("projUser", user);
+                //await REPL.buildPath("/" + user); //make sure the path exists so it will show in the filesystem window
+
+                this.EDITOR_PATH = '/' + user + '/' + projName;
+                if(selectedPlatform === "blockly"){
+                    this.EDITOR_PATH += ".blocks";
+                    localStorage.setItem("isBlockly" + this.ID, true);      
+                } else{
+                    this.EDITOR_PATH += ".py";
+                    localStorage.setItem("isBlockly" + this.ID, false);  
+                }
+                localStorage.setItem("EditorTitle" + this.ID, "Editor" + this.ID + ' - ' + this.EDITOR_PATH);
+                localStorage.setItem("EditorPath" + this.ID, this.EDITOR_PATH);
+                this.initEditorPanelUI(state["value"]);
+
+                this.onSaveToThumby();
+            }
+
+
+            
             var blockly_button = document.createElement("button");
             blockly_button.classList = "uk-button uk-button-secondary uk-width-1-2 uk-height-1-1 uk-text-small";
             blockly_button.innerHTML = '<img src="images/blockly.svg" class="uk-width-1-2"/><div><p>BLOCKLY</p><p>(visual block editor)<p/></div>';
             blockly_button.title = "Load a Blockly Editor for visual block-based coding.";
-            this.EDITOR_DIV.appendChild(blockly_button);
+            //this.EDITOR_DIV.appendChild(blockly_button);
 
             var micropython_button = document.createElement("button");
             micropython_button.classList = "uk-button uk-button-secondary uk-width-1-2 uk-height-1-1 uk-text-small";
             micropython_button.innerHTML = '<img src="images/micropython.png" class="micropython-icon"/><div class="micropython-text"><p>MICRO PYTHON</p><p>(text code editor)</p></div>';
             micropython_button.title = "Load a MicroPython Editor for normal text-based coding.";
-            this.EDITOR_DIV.appendChild(micropython_button);
+            //this.EDITOR_DIV.appendChild(micropython_button);
 
             const cleanUp = ()=>{
                 localStorage.removeItem("EditorTitle" + this.ID);
@@ -76,6 +158,10 @@ class EditorWrapper{
                 this.initEditorPanelUI(state["value"]);
             };
         }else{
+            const path = state["path"]
+            if(path != undefined && path.endsWith(".blocks")){
+                this.state['isBlockly'] = true;
+            }
             this.initEditorPanelUI(state["value"]);
         }
 
@@ -184,7 +270,8 @@ class EditorWrapper{
             var text = typeof data == "string" ? data : new TextDecoder().decode(new Uint8Array(data));
             //We know there is data, so save it to the localstorage for this editor ID
             localStorage.setItem("EditorValue"+this.ID, text);
-            if(text && text.startsWith("{") && text.indexOf('{"blocks":{"') != -1){
+            //if(text && text.startsWith("{") && text.indexOf('{"blocks":{"') != -1){
+            if(isBlockly){
                 console.log("INIT BLOCKLY VIEWER");
                 localStorage.setItem("isBlockly" + this.ID, true);
                 if(this.SAVED_TO_THUMBY == undefined){
@@ -340,10 +427,11 @@ class EditorWrapper{
                     this.EDITOR_DIV.replaceChild(this.ERROR_DIV, this.EDITOR_DIV.childNodes[0]);
                 }
             }else{
-                // When adding default editors, give them a path but make each unique by looking at all other open editors
-                this.setPath("/untitled-" + this.ID + ".blocks");
-                this.setTitle("Editor" + this.ID + ' - *' + this.EDITOR_PATH);
-
+                if(this.EDITOR_PATH == undefined){
+                    // When adding default editors, give them a path but make each unique by looking at all other open editors
+                    this.setPath("/untitled-" + this.ID + ".blocks");
+                    this.setTitle("Editor" + this.ID + ' - *' + this.EDITOR_PATH);
+                }
             }
             // Ensure all Blockly editors have a path set. Let's keep it simple for the <3n00bs<3
         }
@@ -406,9 +494,10 @@ class EditorWrapper{
             this.ACE_EDITOR.setValue(lastEditorValue, 1);
         }else{
             this.ACE_EDITOR.setValue(this.defaultCode, 1);
-
-            this.setPath("/untitled-" + this.ID + ".py");
-            this.setTitle("Editor" + this.ID + ' - ' + this.EDITOR_PATH);
+            if(this.EDITOR_PATH == undefined){
+                this.setPath("/untitled-" + this.ID + ".py");
+                this.setTitle("Editor" + this.ID + ' - ' + this.EDITOR_PATH);
+            }
         }
 
         // Make it so you can't undo the code paste into the editor

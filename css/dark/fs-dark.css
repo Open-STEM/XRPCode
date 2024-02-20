@@ -17,13 +17,16 @@
     width: 0%;
     height: 20px;
     background-color: green;
-    position: absolute;
+    /* position: absolute; */
     top: 0;
     color: white;
     font-family: Roboto;
     font-size: 13px;
     overflow: visible;
     white-space: nowrap;
+}
+.fs_user{
+    display:inline-flex;
 }
 .fs_footer{
     display: flex;
