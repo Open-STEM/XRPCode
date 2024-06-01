@@ -211,6 +211,10 @@ var blocklyToolbox = {
                             "kind": "BLOCK",
                             "type": "pestolink_get_controller_right_y"
                         },
+                        {
+                            "kind": "BLOCK",
+                            "type": "pestolink_get_axis"
+                        }
                     ]
                 },
                 {
@@ -250,6 +254,10 @@ var blocklyToolbox = {
                             "kind": "BLOCK",
                             "type": "pestolink_is_left_bumper_pressed"
                         },
+                        {
+                            "kind": "BLOCK",
+                            "type": "pestolink_get_button"
+                        }
                     ]
                 }
             ]

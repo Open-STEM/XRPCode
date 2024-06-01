@@ -461,3 +461,21 @@ Blockly.Python['pestolink_is_right_trigger_pressed'] = function (block) {
 };
 
 
+Blockly.Python['pestolink_get_axis'] = function (block) {
+  PY.definitions_['import_random']='import random\n ';
+  PY.definitions_['import_pestolink']='import string\n from machine import Pin \nimport bluetooth\nfrom pestolink import PestoLinkAgent\n\nrobot_name = \"("".join(random.choice(string.ascii_lowercase) for i in range(5)))\"\npestolink = PestoLinkAgent(robot_name) \n print("The name of your robot is, robot_name")'
+  var axis = block.getFieldValue("axis");
+  var code = `pestolink.get_axis(${axis})`;
+  // TODO: Change ORDER_NONE to the correct strength.
+  return [code, Blockly.Python.ORDER_NONE];
+};
+
+
+Blockly.Python['pestolink_get_button'] = function (block) {
+  PY.definitions_['import_random']='import random\n ';
+  PY.definitions_['import_pestolink']='import string\n from machine import Pin \nimport bluetooth\nfrom pestolink import PestoLinkAgent\n\nrobot_name = \"("".join(random.choice(string.ascii_lowercase) for i in range(5)))\"\npestolink = PestoLinkAgent(robot_name) \n print("The name of your robot is, robot_name")'
+  var button = block.getFieldValue("num");
+  var code = `pestolink.get_button(${button})`;
+  // TODO: Change ORDER_NONE to the correct strength.
+  return [code, Blockly.Python.ORDER_NONE];
+};
