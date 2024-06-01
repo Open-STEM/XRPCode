@@ -580,6 +580,138 @@ Blockly.Blocks['xrp_sleep'] = {
   }
 };
 
+//Pesto Link Controller: Credit Kavin Muralikrishnan FRC Team 5338 Roboloco
+Blockly.Blocks['pestolink_get_controller_left_x']={
+  init: function () {
+    this.appendDummyInput()
+      .appendField("Get Horizontal Value of Left Joystick");
+    this.setOutput(true, null);
+    this.setColour(60);
+    this.setTooltip("");
+    this.setHelpUrl("");
+  }
+};
+
+Blockly.Blocks['pestolink_get_controller_left_y']={
+  init: function () {
+    this.appendDummyInput()
+      .appendField("Get Vertical Value of Left Joystick");
+    this.setOutput(true, null);
+    this.setColour(60);
+    this.setTooltip("");
+    this.setHelpUrl("");
+  }
+};
+
+Blockly.Blocks['pestolink_get_controller_right_x']={
+  init: function () {
+    this.appendDummyInput()
+      .appendField("Get Horizontal Value of Right Joystick");
+    this.setOutput(true, null);
+    this.setColour(60);
+    this.setTooltip("");
+    this.setHelpUrl("");
+  }
+};
+
+Blockly.Blocks['pestolink_get_controller_right_y']={
+  init: function () {
+    this.appendDummyInput()
+      .appendField("Get Vertical Value of Right Joystick");
+    this.setOutput(true, null);
+    this.setColour(60);
+    this.setTooltip("");
+    this.setHelpUrl("");
+  }
+};
+
+Blockly.Blocks['pestolink_is_a_pressed']={
+  init: function () {
+    this.appendDummyInput()
+      .appendField("A Pressed");
+    this.setOutput(true, null);
+    this.setColour(60);
+    this.setTooltip("");
+    this.setHelpUrl("");
+  }
+};
+
+Blockly.Blocks['pestolink_is_b_pressed']={
+  init: function () {
+    this.appendDummyInput()
+      .appendField("B Pressed");
+    this.setOutput(true, null);
+    this.setColour(60);
+    this.setTooltip("");
+    this.setHelpUrl("");
+  }
+};
+
+Blockly.Blocks['pestolink_is_x_pressed']={
+  init: function () {
+    this.appendDummyInput()
+      .appendField("X Pressed");
+    this.setOutput(true, null);
+    this.setColour(60);
+    this.setTooltip("");
+    this.setHelpUrl("");
+  }
+};
+
+Blockly.Blocks['pestolink_is_y_pressed']={
+  init: function () {
+    this.appendDummyInput()
+      .appendField("Y Pressed");
+    this.setOutput(true, null);
+    this.setColour(60);
+    this.setTooltip("");
+    this.setHelpUrl("");
+  }
+};
+
+Blockly.Blocks['pestolink_is_right_bumper_pressed']={
+  init: function () {
+    this.appendDummyInput()
+      .appendField("Right Bumper Pressed");
+    this.setOutput(true, null);
+    this.setColour(60);
+    this.setTooltip("");
+    this.setHelpUrl("");
+  }
+};
+
+Blockly.Blocks['pestolink_is_left_bumper_pressed']={
+  init: function () {
+    this.appendDummyInput()
+      .appendField("Left Bumper Pressed");
+    this.setOutput(true, null);
+    this.setColour(60);
+    this.setTooltip("");
+    this.setHelpUrl("");
+  }
+};
+
+Blockly.Blocks['pestolink_is_right_trigger_pressed']={
+  init: function () {
+    this.appendDummyInput()
+      .appendField("Right Trigger Pressed");
+    this.setOutput(true, null);
+    this.setColour(60);
+    this.setTooltip("");
+    this.setHelpUrl("");
+  }
+};
+
+Blockly.Blocks['pestolink_is_left_trigger_pressed']={
+  init: function () {
+    this.appendDummyInput()
+      .appendField("Left Trigger Pressed");
+    this.setOutput(true, null);
+    this.setColour(60);
+    this.setTooltip("");
+    this.setHelpUrl("");
+  }
+};
 // OTHER BLOCK COLORS - These colors can be found in the xrp_blockly_toolbox1.js file
 // BLOCK TYPE --> COLOR
 // Loops --> grass green
@@ -588,3 +720,4 @@ Blockly.Blocks['xrp_sleep'] = {
 // Lists --> eggplant purple
 // Variables --> grey
 // Functions --> medium purple
+// Controller --> Some random shade of yellow idk
