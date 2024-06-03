@@ -715,29 +715,25 @@ Blockly.Blocks['pestolink_is_left_trigger_pressed']={
 
 Blockly.Blocks['pestolink_get_axis'] = {
   init: function() {
-    this.appendDummyInput()
-      .appendField("Get Pesto Link Axis");
     this.appendValueInput("axis")
       .setCheck("Number")
-      .appendField("Axis Number:");
-      this.setOutput(true, null);
-      this.setColour(60);
-      this.setTooltip("Get a specific axis from Pesto Link");
-      this.setHelpUrl("");
+      .appendField("Get Pesto Link Axis");
+    this.setOutput(true, null);
+    this.setColour(60);
+    this.setTooltip("Get a specific axis from Pesto Link");
+    this.setHelpUrl("");
   }
 }
 
 Blockly.Blocks['pestolink_get_button'] = {
   init: function() {
-    this.appendDummyInput()
-      .appendField("Is Pesto Link Button Pressed");
     this.appendValueInput("num")
       .setCheck("Number")
-      .appendField("Button Number:");
-      this.setOutput(true, null);
-      this.setColour(60);
-      this.setTooltip("Get the pressed state of a specific button from Pesto Link");
-      this.setHelpUrl("");
+      .appendField("Is Pesto Link Button Pressed");
+    this.setOutput(true, null);
+    this.setColour(60);
+    this.setTooltip("Get the pressed state of a specific button from Pesto Link");
+    this.setHelpUrl("");
   }
 }
 // OTHER BLOCK COLORS - These colors can be found in the xrp_blockly_toolbox1.js file

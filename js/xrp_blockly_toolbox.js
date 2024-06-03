@@ -213,8 +213,11 @@ var blocklyToolbox = {
                         },
                         {
                             "kind": "BLOCK",
-                            "type": "pestolink_get_axis"
-                        }
+                            "type": "pestolink_get_axis",
+                            "inputs": {
+                                "axis": {"shadow": {"type": "math_number", "fields": {"axis": "0"}}}
+                            }
+                        },
                     ]
                 },
                 {
@@ -256,7 +259,10 @@ var blocklyToolbox = {
                         },
                         {
                             "kind": "BLOCK",
-                            "type": "pestolink_get_button"
+                            "type": "pestolink_get_button",
+                            "inputs":{
+                                "num": {"shadow": {"type": "math_number", "fields": {"num": "0"}}}
+                            }
                         }
                     ]
                 }
