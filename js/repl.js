@@ -480,7 +480,8 @@ class ReplJS{
     async getToNormal(omitOffset = 0){
         await this.getToRaw();  // Get to raw first so that unwanted messages are not printed (like another intro message)
 
-        this.startReaduntil("Raspberry Pi Pico W with RP2040");
+        //this.startReaduntil("Raspberry Pi Pico W with RP2040");
+        this.startReaduntil("MicroPython");
         //this.startReaduntil("information.");
         // https://github.com/micropython/micropython/blob/master/tools/pyboard.py#L360 for "\r"
         await this.writeToDevice("\r" + this.CTRL_CMD_NORMALMODE);
@@ -711,7 +712,8 @@ class ReplJS{
 
         this.doPrintSeparator();
 
-        this.startReaduntil("Raspberry Pi Pico W with RP2040");
+        //this.startReaduntil("Raspberry Pi Pico W with RP2040");
+        this.startReaduntil("MicroPython");
         await this.writeToDevice("\r" + this.CTRL_CMD_NORMALMODE);
         await this.haltUntilRead(3);
 
