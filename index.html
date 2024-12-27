@@ -7,21 +7,21 @@
 
     <title>XRP Code Editor</title>
 
-        <link rel="stylesheet" href="uikit-3.16.22/css/uikit.css?version=1.0.3" />
+        <link rel="stylesheet" href="uikit-3.16.22/css/uikit.css?version=1.1.0" />
 
-        <link rel="stylesheet" href="js/xterm/css/xterm.css?version=1.0.3"/>
+        <link rel="stylesheet" href="js/xterm/css/xterm.css?version=1.1.0"/>
 
-        <link rel="stylesheet" href="golden-layout/css/goldenlayout-base.css?version=1.0.3">
-        <link rel="stylesheet" href="golden-layout/css/themes/goldenlayout-dark-theme.css?version=1.0.3">
+        <link rel="stylesheet" href="golden-layout/css/goldenlayout-base.css?version=1.1.0">
+        <link rel="stylesheet" href="golden-layout/css/themes/goldenlayout-dark-theme.css?version=1.1.0">
 
-        <link rel="stylesheet" href="css/dark/main-dark.css?version=1.0.3">
-        <link rel="stylesheet" href="css/dark/fs-dark.css?version=1.0.3">
-        <link rel="stylesheet" href="css/dark/dir_chooser-dark.css?version=1.0.3">
-        <link rel="stylesheet" href="css/dark/shell-dark.css?version=1.0.3">
-        <link rel="stylesheet" href="css/dark/editor-dark.css?version=1.0.3">
-        <link rel="stylesheet" href="css/dark/changelog-dark.css?version=1.0.3">
+        <link rel="stylesheet" href="css/dark/main-dark.css?version=1.1.0">
+        <link rel="stylesheet" href="css/dark/fs-dark.css?version=1.1.0">
+        <link rel="stylesheet" href="css/dark/dir_chooser-dark.css?version=1.1.0">
+        <link rel="stylesheet" href="css/dark/shell-dark.css?version=1.1.0">
+        <link rel="stylesheet" href="css/dark/editor-dark.css?version=1.1.0">
+        <link rel="stylesheet" href="css/dark/changelog-dark.css?version=1.1.0">
 
-        <link rel="stylesheet" href="js/treejs/treejs.css?version=1.0.3" />
+        <link rel="stylesheet" href="js/treejs/treejs.css?version=1.1.0" />
 
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -79,7 +79,8 @@
                 <span
                     id="IDXRPName"
                     style="display: none"
-                    class = "uk-align-right uk-text-small xrp-name"></span>
+                    class = "uk-align-right uk-text-small xrp-name">
+                </span>
 
                 <div class="header_button_space uk-margin-medium-left uk-height-1-1 uk-width-1-3">
 
@@ -180,6 +181,15 @@
                                     <li><button id = "IDAPI" class = "uk-button-xmenu uk-button-secondary-xmenu uk-button-small uk-width-1-1">
                                         API
                                     </button></li>
+                                    <li><button id = "IDCURR" class = "uk-button-xmenu uk-button-secondary-xmenu uk-button-small uk-width-1-1">
+                                        Curriculum 
+                                    </button></li>
+                                    <li><button id = "IDFORUM" class = "uk-button-xmenu uk-button-secondary-xmenu uk-button-small uk-width-1-1">
+                                        User Help Forum 
+                                    </button></li>
+                                    <li><button id = "IDCHANGE" class = "uk-button-xmenu uk-button-secondary-xmenu uk-button-small uk-width-1-1">
+                                        Change Log 
+                                    </button></li>
                                 </ul>
                             </div>
                         </div>
@@ -199,6 +209,29 @@
                 <h4 id="IdProgress_TitleText"></h4>
                 <div id="IDProgressBar" class="progress_bar"></div>
                 <div id="IDProgressBar_Text"></div>
+            </div>
+        </div>
+
+        <!-- This is the modal for connection type -->
+        <div id="connect-modal" uk-modal="esc-close:false; bg-close:false">
+            <div class="uk-modal-dialog uk-modal-body">
+                <h2 class="uk-modal-title"></h2>
+                <div>
+                    <button 
+                        id="IDConnectBLE"
+                        class="uk-button uk-button-default uk-button-large
+                                uk-text-nowrap">
+                        <img height="10%" width="10%" src="images/Bluetooth_FM_Black.png"/></img>
+                        <span id="IDConnectBTN_text">Connect via Bluetooth</span>
+                    </button>
+                    <button 
+                        id="IDConnectUSB"
+                        class="uk-button uk-button-default uk-button-large
+                                uk-text-nowrap">
+                        <img height="10%" width="10%" src="images/USB_icon.svg.png"/></img>
+                        <span id="IDConnectBTN_text">Connect via USB</span>
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -255,29 +288,33 @@
         <script src="js/guided-tutorial.js"></script>
         <script src="uikit-3.16.22/js/uikit.min.js"></script>
         <script src="uikit-3.16.22/js/uikit-icons.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/uikit@3.7.3/dist/js/uikit-icons.min.js"></script>
+       <!-- <script src="https://cdn.jsdelivr.net/npm/uikit@3.7.3/dist/js/uikit-icons.min.js"></script>-->
 
         <script src="js/blockly-10.0.0/blockly.min.js"></script>
         <script src="js/blockly-10.0.0/python_compressed.js"></script>
 
-        <script src="js/treejs/tree.js?version=1.0.3"></script>
+        <script src="js/treejs/tree.js?version=1.1.0"></script>
 
-        <script src="js/xterm/lib/xterm.js?version=1.0.3"></script>
-        <script src="js/xterm-addon-fit/lib/xterm-addon-fit.js?version=1.0.3"></script>
+        <script src="js/xterm/lib/xterm.js?version=1.1.0"></script>
+        <script src="js/xterm-addon-fit/lib/xterm-addon-fit.js?version=1.1.0"></script>
 
         <script src="js/marked/marked.min.js"></script>
+
+
+        <script src="js/ace/ace.js?version=1.0.3" type="text/javascript" charset="utf-8"></script>
+        <script src="js/ace/ext-language_tools.js?version=1.0.3"></script>
 
         <script src="js/xrp_blocks.js"></script>
         <script src="js/xrp_blocks_python.js"></script>
         <script src="js/xrp_blockly_toolbox.js"></script>
 
-        <script src="js/editor_wrapper.js?version=1.0.3"></script>
-        <script src="js/filesystem_wrapper.js?version=1.0.3"></script>
-        <script src="js/dir_chooser.js?version=1.0.3"></script>
-        <script src="js/active_terminal_wrapper.js?version=1.0.3"></script>
-        <script src="js/joystick_wrapper.js?version=1.0.3"></script>
-        <script src="js/repl.js?version=1.0.3"></script>
-        <script type="module" src="golden-layout/bundle/esm/golden-layout.js?version=1.0.3"></script>
-        <script type="module" src="js/main.js?version=1.0.3"></script>
+        <script src="js/editor_wrapper.js?version=1.1.0"></script>
+        <script src="js/filesystem_wrapper.js?version=1.1.0"></script>
+        <script src="js/dir_chooser.js?version=1.1.0"></script>
+        <script src="js/active_terminal_wrapper.js?version=1.1.0"></script>
+        <script src="js/joystick_wrapper.js?version=1.1.0"></script>
+        <script src="js/repl.js?version=1.1.0"></script>
+        <script type="module" src="golden-layout/bundle/esm/golden-layout.js?version=1.1.0"></script>
+        <script type="module" src="js/main.js?version=1.1.0"></script>
     </body>
 </html>

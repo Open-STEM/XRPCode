@@ -1,32 +1,26 @@
+# Version 1.1.0
 
-# Version 1.0.3
+#### Bluetooth support
+<img height="10%" width="10%" src="images/Bluetooth_FM_Black.png"/></img>
 
-This is the staging version for bluetooth
-
-#### Bluetooth
 # Please read the steps below!!
 
 * Connect your XRP with a cable
-* Let the IDE upgrade the Micropython and XRPLib
-* ** after installing XRPLib you will need to hit reset before using the bluetooth **
-* When you click CONNECT it will bring up a list of XRPs that are near the computer
-    * If you want a cable instead, click cancel and it will go to the cable dialog
-* The Bluetooth XRP name is unique per XRP. The one closest should have the strongest signal
-* Once connected the IDE should be the same as if connected via a cable
-* If the XRP is reset / turned off / too far away the IDE will show RE-CONNECT XRP for 10 seconds and then switch to CONNECT.
-    * If the XRP is turned back on / brought closer the IDE will auto re-connect to the XRP within that 10 seconds
-* If you start the XRP and a program runs keeping the bluetooth from connecting then press reset and it should restart without running the program
+* Let XRPCode upgrade the Micropython and XRPLib
+* Under the RUN button will be the unique name of the XRP. You will want to write this on the XRP.
+* Disconnect the XRP from the cable and turn on the XRP.
+* When you click CONNECT select Bluetooth and it will bring up a list of XRPs that are not currently connected. (If your XRP does not show up press reset)
+* Select your XRP and click Pair.
+* Once connected XRPCode should be the same as if connected via a cable. YOU ARE NOW CABLE FREE!
+* If the XRP is reset / turned off / too far away XRPCode will show RE-CONNECT XRP for 10 seconds and then switch to CONNECT.
+    * If the XRP is turned back on / brought closer XRPCode will auto re-connect to the XRP within that 10 seconds
+* If you start the XRP and a program runs keeping the bluetooth from connecting then press reset and it will restart without running the program
 
 #### Fixed
 * Input is now accepted in XRP applications
 * The REPL stays live from run to run and has information from the last running program like globals and classes
-    *When STOP is used the REPL is reset.
+    * When STOP is used the REPL is reset.
 
-
-#### REPORT Problems
-* Thank you for testing, please report problems to the slack or fgrossman@firstnh.org
-* Working to reliably reproduce the problem before reporting is greatly appreciated
-* I have noticed that some older laptops have very slow bluetooth connections
 
 
 

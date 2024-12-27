@@ -542,6 +542,50 @@ class FILESYSTEM{
     }
 
 
+    findNodeByName(nodeName){
+        var child = nodeName;
+        if (nodeName.startsWith('/')) {
+            child = nodeName.slice(1);
+        }
+        const parts = child.split("/");
+        var node = this.FS_ROOT;
+        for(var part of parts){
+            node = this.findNodeByName2(node, part);
+            if(node == null){
+                return null;
+            }
+        }
+        return node;
+    }
+
+    findNodeByName2(tree, nodeName) {
+
+        const children = tree.getChildren();
+        for(var child of children){
+            if(child.toString() === nodeName){
+                return child;
+            }
+        }
+        return null;
+
+
+    return null;
+   // return .find(node => node.text === nodeName);
+
+
+        for (let node of this.FS_TREE) {
+            if (node.text === nodeName) {
+                return node;
+            }
+            if (node.children && node.children.length > 0) {
+                let found = findNodeByName(node.children, nodeName);
+                if (found) return found;
+            }
+        }
+        return null;
+    }
+    
+
     // Call this with parsed json of FS from RP2040 to update webpage of on-board FS view
     updateTree(jsonStrData){
         this.FS_AREA_DIV.style.display = "block";

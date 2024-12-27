@@ -6,8 +6,8 @@ import { startPythonClient, createEditor, setKeyboardHandler } from "./monaco/sr
          VERSION NUMBERS
 */
 
-const showChangelogVersion = "1.0.3";  //update all instances of ?version= in the index file to match the version. This is needed for local cache busting
-window.latestMicroPythonVersion = [1, 22, 1];
+const showChangelogVersion = "1.1.0";  //update all instances of ?version= in the index file to match the version. This is needed for local cache busting
+window.latestMicroPythonVersion = [1, 23, 0];
 window.xrpID = "";
 
 
@@ -62,7 +62,7 @@ let v = jresp.version
 window.latestLibraryVersion = v.split(".");
 
 window.phewList = ["__init__.py","dns.py","logging.py","server.py","template.py"];
-window.bleList = ["__init__.py","blerepl.py", "ble_uart_peripheral.py", "isrunning"]
+window.bleList = ["__init__.py","blerepl.py", "ble_uart_peripheral.py", "isrunning"]  //bugbug: ble_uart_peripheral looks for ##XRPSTOP## so we can't update via bluetooth. Could be fixed with a hash operation
 
 window.SHOWMAIN = false;
 
@@ -354,6 +354,25 @@ document.getElementById("IDUserGuide").onclick = (event) =>{
 document.getElementById("IDAPI").onclick = (event) =>{
     UIkit.dropdown(HELP_DROPDOWN).hide();
     window.open("https://open-stem.github.io/XRP_MicroPython/", "_blank")
+}
+
+document.getElementById("IDCURR").onclick = (event) =>{
+    UIkit.dropdown(HELP_DROPDOWN).hide();
+    window.open("https://introtoroboticsv2.readthedocs.io/en/latest/", "_blank")
+}
+
+document.getElementById("IDFORUM").onclick = (event) =>{
+    UIkit.dropdown(HELP_DROPDOWN).hide();
+    window.open("https://xrp.discourse.group/", "_blank")
+}
+
+document.getElementById("IDCHANGE").onclick = (event) =>{
+    UIkit.dropdown(HELP_DROPDOWN).hide();
+    fetch("CHANGELOG.txt?version=" + Math.floor(Math.random() * (100 - 1) + 1)).then(async (response) => {
+        await response.text().then(async (text) => {
+            await dialogMessage(marked.parse(text));
+        });
+    });
 }
 
 disableMenuItems(); 
@@ -659,6 +678,25 @@ function registerShell(_container, state){
     REPL.IDSet = () => {
          //ID this would be a good spot to send window.xrpID to the database
          if(window.xrpID != ""){
+            const isBLE = REPL.BLE_DEVICE != undefined;
+            const data = {
+                XRPID: window.xrpID,
+                platform: 'XRPCode',
+                BLE: isBLE
+            };
+            try{
+                const response = fetch('https://xrpid-464879733234.us-central1.run.app/data', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+            }
+            catch{
+                
+            }
+
             document.getElementById('IDXRPName').innerHTML = "XRP-" + window.xrpID.slice(-5);
             document.getElementById('IDXRPName').style.display = "block";
          }
@@ -798,16 +836,18 @@ function registerEditor(_container, state) {
             UIkit.modal(document.getElementById("IDProgressBarParent")).show();
             document.getElementById("IdProgress_TitleText").innerText = "Saving...";
 
+            var fileData = null;
             if(editor.isBlockly){
-                var blockData = editor.getValue() + '\n\n\n## ' + getTimestamp() + '\n##XRPBLOCKS ' + editor.getBlockData();
-                var busy = await REPL.uploadFile(
-                    editor.EDITOR_PATH, blockData, true, false);
-                if(busy != true){
-                    await REPL.getOnBoardFSTree();
-                }
+                fileData = editor.getValue() + '\n\n\n## ' + getTimestamp() + '\n##XRPBLOCKS ' + editor.getBlockData(); 
             }else{
-                var busy = await REPL.uploadFile(editor.EDITOR_PATH, editor.getValue(), true, false);
-                if(busy != true){
+                fileData = editor.getValue();
+            }
+
+            var busy = await REPL.uploadFile(editor.EDITOR_PATH, fileData, true, false);
+            if(busy != true){
+                //if the file is already in the FSTree then don't get the directory again
+                var node = FS.findNodeByName(editor.EDITOR_PATH);
+                if(node == null){
                     await REPL.getOnBoardFSTree();
                 }
             }
@@ -883,7 +923,8 @@ function registerEditor(_container, state) {
 
         //handel any special hidden settings
         if(lines.startsWith("#XRPSETTING")){
-            var setting = lines.split("#XRPSETTING")[1];
+            var setting = lines.split("\n");
+            setting = setting[0].split("#XRPSETTING")[1];
             setting = setting.trimEnd();
             switch(setting){
                 case "-localstorage":
@@ -919,18 +960,24 @@ function registerEditor(_container, state) {
 
         //if Cable attached check to see that the power switch is on.
         // if BLE make sure the voltage is high enough
+        const voltage = await REPL.batteryVoltage();
         if(REPL.BLE_DEVICE == undefined){
-            if(! await REPL.isPowerSwitchOn()) {
+            if(voltage < 0.4) {
                 if(! await window.confirmMessage("The power switch on the XRP is not on. Motors and Servos will not work.<br>Turn on the switch before continuing." +
                     "<br><img src='/images/XRP_Controller-Power.jpg' width=300>")) {
                     return;
                 }
             }
         }else{
-            if(! await REPL.batteriesOK()) {
-                if(! await window.confirmMessage("The XRP battery power is low. Continuing may cause odd results or the XRP may disconnect from XRPCode." +
-                    "<br>It is suggested that you replace the batteries before continuing." +
-                    "<br>Continue?")) {
+            if(voltage < 0.4) { //the device must be connected to a USB power with the power switch turned off.
+                    if(! await window.confirmMessage("The power switch on the XRP is not on. Motors and Servos will not work.<br>Turn on the switch before continuing." +
+                        "<br><img src='/images/XRP_Controller-Power.jpg' width=300>")) {
+                        return;
+                    }
+                
+            }else if(voltage < 5.0) {
+                if(await window.confirmMessage("<h1 style='text-align:center'>Low Battery Power! - Please Replace the Batteries</h1>" +
+                    "<br><div  style='text-align:center'> <img src='/images/sad-battery.png' width=200></div>")) {
                     return;
                 }
             }
@@ -952,15 +999,16 @@ function registerEditor(_container, state) {
                 await editor.onSaveToThumby();
             }
         }
-
-        UIkit.modal(document.getElementById("IDProgressBarParent")).show();
+        var progressParent = document.getElementById("IDProgressBarParent");
+        //await UIkit.modal(progressParent).show();
         document.getElementById("IdProgress_TitleText").innerText = "Running Program...";
 
         // update the main file so if they unplug the robot and turn it on it will execute this program.
         await REPL.clearIsRunning(); // since we know the user hit run, we want the isrunning bit to be 0 so the program will always run.
         lines = await REPL.updateMainFile(editor.EDITOR_PATH); //replaces the lines with the main file.
+
         ATERM.TERM.scrollToBottom();
-        UIkit.modal(document.getElementById("IDProgressBarParent")).hide();
+        //await UIkit.modal(progressParent).hide();
         await REPL.executeLines(lines);
         // document.getElementById('IDRunBTN').disabled = false;
 
@@ -976,7 +1024,7 @@ function registerEditor(_container, state) {
 
 
         if(REPL.RUN_ERROR && REPL.RUN_ERROR.includes("[Errno 2] ENOENT", 0)){
-            window.alertMessage("The program that you were trying to RUN has not been saved to this XRP.<br>To RUN this program save the file to XRP and click RUN again.");
+            await window.alertMessage("The program that you were trying to RUN has not been saved to this XRP.<br>To RUN this program save the file to XRP and click RUN again.");
         }
 
     }

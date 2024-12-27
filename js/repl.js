@@ -84,49 +84,72 @@ class ReplJS{
         // Check if browser can use WebSerial
         if ("serial" in navigator) {
             if(this.DEBUG_CONSOLE_ON) console.log("Serial supported in this browser!");
+            // Attempt auto-connect when page validated device plugged in, do not start manual selection menu
+            navigator.serial.addEventListener('connect', (e) => {
+                if(this.MANNUALLY_CONNECTING  == false){
+                    this.tryAutoConnect();
+                }
+            });
+
+
+            // Probably set flags/states when page validated device removed
+            navigator.serial.addEventListener('disconnect', (e) => {
+                var disconnectedPort = e.target;
+
+                // Only display disconnect message if there is a matching port on auto detect or not already disconnected
+                if(this.checkPortMatching(disconnectedPort) && this.DISCONNECT == false){
+                    if(this.DEBUG_CONSOLE_ON) console.log("%cDisconnected MicroPython!");
+                    this.WRITER = undefined;
+                    this.READER = undefined;
+                    this.PORT = undefined;
+                    this.DISCONNECT = true; // Will stop certain events and break any EOT waiting functions
+                    this.onDisconnect();
+                    this.BUSY = false;      // If not set false here, if disconnected at just the right time, can't connect until refresh
+                }
+            });
         } else {
             alert("Serial NOT supported in your browser! Use Microsoft Edge or Google Chrome");
-            return;
+            //return;
         }
-
-
-        // Attempt auto-connect when page validated device plugged in, do not start manual selection menu
-        navigator.serial.addEventListener('connect', (e) => {
-            if(this.MANNUALLY_CONNECTING  == false){
-                this.tryAutoConnect();
-            }
-        });
-
-
-        // Probably set flags/states when page validated device removed
-        navigator.serial.addEventListener('disconnect', (e) => {
-            var disconnectedPort = e.target;
-
-            // Only display disconnect message if there is a matching port on auto detect or not already disconnected
-            if(this.checkPortMatching(disconnectedPort) && this.DISCONNECT == false){
-                if(this.DEBUG_CONSOLE_ON) console.log("%cDisconnected MicroPython!", "color: yellow");
-                this.WRITER = undefined;
-                this.READER = undefined;
-                this.PORT = undefined;
-                this.DISCONNECT = true; // Will stop certain events and break any EOT waiting functions
-                this.onDisconnect();
-                this.BUSY = false;      // If not set false here, if disconnected at just the right time, can't connect until refresh
-            }
-        });
-
+        
         document.getElementById("IDConnectBTN").addEventListener("click", async (event) => {
             if (REPL.DISCONNECT == false) {
                 await this.disconnect();
             }
             document.getElementById("IDConnectBTN").disabled = true;
-            await this.connect();
+            const answer = await this.showConnectOptions(); // Wait for modal answer
+            if(answer){
+                await this.connectBLE(); //they pressed OK let's do BLE
+            }else {
+                await this.connectCable(); //they pressed Cancel let's do Cable
+            }
             document.getElementById("IDConnectBTN").disabled = false;
-
         });
 
         this.DISCONNECT = true;
     }
+    
+    async showConnectOptions() {
+        return new Promise((resolve, reject) => {
+            const modal = document.getElementById("connect-modal");
+            UIkit.modal(modal).show();
 
+            // Get buttons
+            const USBButton = document.getElementById("IDConnectUSB");
+            const BLEButton = document.getElementById("IDConnectBLE");
+    
+            // Add click event listeners
+            USBButton.addEventListener("click", () => {
+                UIkit.modal(modal).hide();
+                resolve(false); // Resolve promise as "false"
+            });
+    
+            BLEButton.addEventListener("click", () => {
+                UIkit.modal(modal).hide();
+                resolve(true); // Resolve promise as "true"
+            });
+        });
+    }
 
     // Returns true if product and vendor ID match for MicroPython, otherwise false #
     checkPortMatching(port){
@@ -344,11 +367,12 @@ class ReplJS{
             } catch (err) {
                 // TODO: Handle non-fatal read error.
                 if(err.name == "NetworkError"){
-                    if(this.DEBUG_CONSOLE_ON) console.log("%cDevice most likely unplugged, handled", "color: yellow");
+                    if(this.DEBUG_CONSOLE_ON) console.log("%cDevice most likely unplugged, handled");
+                    this.disconnect();
                 }
             }
         }
-        if(this.DEBUG_CONSOLE_ON) console.log("%cCurrent read loop ended!", "color: yellow");
+        if(this.DEBUG_CONSOLE_ON) console.log("%cCurrent read loop ended!");
         this.BUSY = false;
     }
 
@@ -360,7 +384,6 @@ class ReplJS{
         bufView[i] = str.charCodeAt(i);
         return buf;
     }
-
     startBLEData() {
             // Set up the event listener for the RX characteristic
             this.READBLE.addEventListener('characteristicvaluechanged', event => {
@@ -389,6 +412,7 @@ class ReplJS{
 
     bleDisconnect(){
         if(REPL.DEBUG_CONSOLE_ON) console.log("BLE Disconnected");
+        REPL.BLE_DISCONNECT_TIME = Date.now();
         REPL.WRITEBLE = undefined;
         REPL.READBLE = undefined;
         REPL.DISCONNECT = true; // Will stop certain events and break any EOT waiting functions
@@ -539,33 +563,38 @@ class ReplJS{
         this.BUSY = false;
     }
 
-
-    // Check to see if the power switch is on otherwise users can wonder why their program is not running correctly.
-    // Note: this is only with the cable attached. If in BLE mode they have to have the power on:
-    // TODO: if in BLE mode see if there is enough power to have a successful run or if their batteries are too low.
-    async isPowerSwitchOn(path){
+    async batteryVoltage(){
         if(this.BUSY == true){
-            return;
+            return 0;
         }
         this.BUSY = true;
 
-        var cmd =   "from XRPLib.board import Board\n" +
-                    "board = Board.get_default_board()\n" +
-                    "print(board.are_motors_powered())\n";
+        var cmd =   "from machine import ADC, Pin\n" +
+                    "print(ADC(Pin(28)).read_u16())\n";
 
 
         var hiddenLines = await this.writeUtilityCmdRaw(cmd, true, 1);
 
         await this.getToNormal(3);
         this.BUSY = false;
-        if(hiddenLines[0] == "OKTrue"){
-            return true;
-        }
-        else {
-            return false;
-        }
+        const value = parseInt(hiddenLines[0].substring(2)); //get the string after the OK
+        return value / (1024*64/14) //the voltage ADC is 64k (RP2040 ADC is 0-4095 but micropython adjusts it to 0 - 64K) And while the voltage is a max of 11V, the divider comes out close to 14V
     }
 
+    async resetIsRunning(){
+        if(this.BUSY == true){
+            return 0;
+        }
+        this.BUSY = true;
+
+        var cmd =   "with open('/lib/ble/isrunning', 'r+b') as file:\n" +
+                    "      file.write(b'\\x00')\n";
+
+        var hiddenLines = await this.writeUtilityCmdRaw(cmd, true, 1);
+
+        await this.getToNormal(3);
+        this.BUSY = false;
+    }
     async batteriesOK(){
         if(this.BUSY == true){
             return;
@@ -602,11 +631,12 @@ class ReplJS{
 
         var getFilesystemCmd =
         "import os\n" +
-        "import ujson\n" +
+        //"import ujson\n" +
         "import gc\n" +
-
+        "outstr = ''\n" +
+        "gc.collect()\n" +  //this is needed for the ble it seems like we run out of memory otherwise
         "def walk(top, structure, dir):\n" +
-
+        "    global outstr\n" +
         "    extend = \"\";\n" +
         "    if top != \"\":\n" +
         "        extend = extend + \"/\"\n" +
@@ -616,16 +646,22 @@ class ReplJS{
 
         "    for dirent in os.listdir(top):\n" +                        // Loop through and create structure of on-board FS
         "        if(os.stat(top + extend + dirent)[0] == 32768):\n" +   // File
-        "            structure[dir][item_index] = {\"F\": dirent}\n" +
+        //"            print(str(count) + ',' + dir + ',' + str(item_index) + ',F,' + dirent)\n" +
+        "            outstr = outstr + dir + ',' + str(item_index) + ',F,' + dirent + ';'\n" +
+        //"            structure[dir][item_index] = {\"F\": dirent}\n" +
         "            item_index = item_index + 1\n" +
         "        elif(os.stat(top + extend + dirent)[0] == 16384):\n" + // Dir
-        "            structure[dir][item_index] = {\"D\": dirent}\n" +
+        //"            print(str(count) + ',' + dir + ',' + str(item_index) + ',D,' + dirent)\n" +
+        "            outstr = outstr + dir + ',' + str(item_index) + ',D,' + dirent + ';'\n" +
+        //"            structure[dir][item_index] = {\"D\": dirent}\n" +
         "            item_index = item_index + 1\n" +
         "            walk(top + extend + dirent, structure[dir], dirent)\n" +
-        "        gc.collect()\n" +  //this is needed for the ble it seems like we run out of memory otherwise
         "    return structure\n" +
         "struct = {}\n" +
-        "print(ujson.dumps(walk(\"\", struct, \"\")))\n";
+        "walk(\"\", struct, \"\")\n" +
+        "print(outstr)\n";
+        //"print(walk(\"\", struct, \"\"))\n";
+        //"print(ujson.dumps(walk(\"\", struct, \"\")))\n";
 
         var sizeCmd =
         "a = os.statvfs('/')\n" +
@@ -637,7 +673,8 @@ class ReplJS{
 
         // Make sure this wasn't executed when no XRP was attached
         if(hiddenLines != undefined){
-            this.onFSData(hiddenLines[0].substring(2), hiddenLines[1].split(' '));
+            this.changeToJSON(hiddenLines);
+            this.onFSData(JSON.stringify(this.DIR_STRUCT), hiddenLines[1].split(' '));
         }
 
         //window.setPercent(65, "Fetching filesystem...");
@@ -651,7 +688,40 @@ class ReplJS{
         //window.resetPercentDelay();
     }
 
+    changeToJSON(data){
+        data[0] = data[0].slice(2);
+        this.DIR_DATA = data[0].split(';');
+        this.DIR_STRUCT = {};
+        this.DIR_INDEX = 0;
+        this.DIR_STRUCT = this.dirRoutine("");
+            
+    }
 
+    dirRoutine(dir){
+        var dir_struct = {};
+        dir_struct[dir] = {};
+        while (this.DIR_INDEX < (this.DIR_DATA.length - 1)) {
+
+            const [path, index, type, name] = this.DIR_DATA[this.DIR_INDEX].split(',');
+            if(dir === path){
+                this.DIR_INDEX++;
+                dir_struct[dir][index] = {}
+
+                if(type == 'F'){
+                    dir_struct[dir][index]["F"] = name;
+                }
+                else{
+                    dir_struct[dir][index]["D"] = name;
+                    dir_struct[dir] = {...dir_struct[dir], ...this.dirRoutine(name)};
+                }
+
+            }
+            else{
+                break;
+            }
+        }
+        return dir_struct;
+    }
     async executeLines(lines){
         if(this.BUSY == true){
             return;
@@ -1136,6 +1206,7 @@ class ReplJS{
     }
 
     async updateMainFile(fileToEx){
+
         var fileToEx2 = fileToEx;
         if (fileToEx.startsWith('/')) {
             fileToEx2 = fileToEx.slice(1);
@@ -1143,34 +1214,36 @@ class ReplJS{
         
         var value = "import os\n" +
                     "import sys\n" +
-                    "from machine import Pin\n" +
+                    //"from machine import Pin\n" +
                     "import time\n" +
                     "FILE_PATH = '/lib/ble/isrunning'\n" +
+                    "doNothing = False\n" +
                     "x = os.dupterm(None, 0)\n" +
                     "if(x == None):\n" +
                     "   import ble.blerepl\n" +
                     "else:\n" +
                     "   os.dupterm(x,0)\n" +
-                    "button = Pin(22, Pin.IN, Pin.PULL_UP)\n" +
-                    "time.sleep(0.1)\n" +
-                    "if(button.value() == 0):\n" +
-                    "   sys.exit()\n" +
+                    //"button = Pin(22, Pin.IN, Pin.PULL_UP)\n" +
+                    //"time.sleep(0.1)\n" +
+                    //"if(button.value() == 0):\n" +
+                    //"   sys.exit()\n" +
                     "try:\n" +
                     "   with open(FILE_PATH, 'r+b') as file:\n" +
                     "      byte = file.read(1)\n" +
                     "      if byte == b'\\x01':\n" +
                     "         file.seek(0)\n" +
                     "         file.write(b'\\x00')\n" +
-                    "         sys.exit()\n" +
+                    "         doNothing = True\n" +
                     "      else:\n" +
                     "         file.seek(0)\n" +
                     "         file.write(b'\\x01')\n" +
-                    "   with open('"+fileToEx+"', mode='r') as exfile:\n" +
-                    "       code = exfile.read()\n"+
-                    "   execCode = compile(code, '" +fileToEx2+"', 'exec')\n" +
-                    "   exec(execCode)\n" +
-                    "   with open(FILE_PATH, 'r+b') as file:\n" +
-                    "      file.write(b'\\x00')\n" +
+                    "   if(not doNothing):\n" +
+                    "       with open('"+fileToEx+"', mode='r') as exfile:\n" +
+                    "           code = exfile.read()\n"+
+                    "       execCode = compile(code, '" +fileToEx2+"', 'exec')\n" +
+                    "       exec(execCode)\n" +
+                    "       with open(FILE_PATH, 'r+b') as file:\n" +
+                    "           file.write(b'\\x00')\n" +
                     "except Exception as e:\n" +
                     "   import sys\n" +
                     "   sys.print_exception(e)\n"+
@@ -1182,7 +1255,12 @@ class ReplJS{
                     "   if 'XRPLib.resetbot' in sys.modules:\n" +
                     "      del sys.modules['XRPLib.resetbot']\n" +
                     "   import XRPLib.resetbot";
-        await this.uploadFile("//main.py", value, true, false);
+
+        if(this.LAST_RUN == undefined || this.LAST_RUN != fileToEx){
+            await this.uploadFile("//main.py", value, true, false); //no need to save the main file again if it is the same file to execute.
+        }
+        this.LAST_RUN = fileToEx;            
+        
         window.resetPercentDelay();
         return value;
     }
@@ -1342,10 +1420,19 @@ class ReplJS{
         if(curVer == "ERROR EX"){
             curVer = "None";
         }
-        let answer = await window.confirmMessage("The library files on the XRP are out of date.<br>" +
-                "The current version is " + curVer +
-                " and the new version is version " + window.latestLibraryVersion[0] + "." + window.latestLibraryVersion[1] + "." + window.latestLibraryVersion[2] +"<br>" +
-                "Click OK to update the XRP to the latest version.");
+
+        var message = "The library files on the XRP are out of date.<br>" +
+                            "The current version is " + curVer +
+                            " and the new version is version " + window.latestLibraryVersion[0] + "." + window.latestLibraryVersion[1] + "." + window.latestLibraryVersion[2] +"<br>";
+
+        if(REPL.BLE_DEVICE != undefined){
+
+            message += "<br>You will need to connect your XRP with a USB cable in order to update XRPLib";
+            await alertMessage(message);
+            return;
+        }
+        message += "Click OK to update the XRP to the latest version.";
+        let answer = await window.confirmMessage(message);
         if (!answer) {
             return; //they pressed CANCEL
         }
@@ -1543,6 +1630,8 @@ class ReplJS{
             try{
                 await this.PORT.open({ baudRate: 115200 });
                 this.WRITER = await this.PORT.writable.getWriter();     // Make a writer since this is the first time port opened
+                return true;
+    /*
                 this.readLoop();                // Start read loop
                 if(await this.checkIfMP()){
                     if(this.HAS_MICROPYTHON == false){    //something went wrong, just get out of here
@@ -1557,10 +1646,12 @@ class ReplJS{
                 this.BUSY = false;
                 await this.checkIfNeedUpdate();
                 this.IDSet();
-
+    */            
             }catch(err){
                 if(err.name == "InvalidStateError"){
                     if(this.DEBUG_CONSOLE_ON) console.log("%cPort already open, everything good to go!", "color: lime");
+                    return true;
+                /*
                     if (await this.checkIfMP()){
                         if(this.HAS_MICROPYTHON == false){    //something went wrong, just get out of here
                             return;
@@ -1575,10 +1666,12 @@ class ReplJS{
                     this.BUSY = false;
                     await this.checkIfNeedUpdate();
                     this.IDSet();
+                */
 
                 }else if(err.name == "NetworkError"){
-                    alert("Opening port failed, is another application accessing this device/port?");
+                    //alert("Opening port failed, is another application accessing this device/port?");
                     if(this.DEBUG_CONSOLE_ON) console.log("%cOpening port failed, is another application accessing this device/port?", "color: red");
+                    return false;
                 }
             }
         }else{
@@ -1588,9 +1681,6 @@ class ReplJS{
 
     async finishConnect(){
         this.DISCONNECT  = false;
-        if(this.PORT != undefined){ //if we connected via USB then we can release the BLE terminal
-            this.resetTerminal();
-        }
         this.readLoop(); 
         if(await this.checkIfMP()){
             if(this.HAS_MICROPYTHON == false){    //something went wrong, just get out of here
@@ -1601,11 +1691,15 @@ class ReplJS{
             await this.getOnBoardFSTree();
             this.onConnect();
         }
-
+        
+        this.LAST_RUN = undefined;
         this.BUSY = false;
+        if(this.PORT != undefined){ //if we connected via USB then we can release the BLE terminal
+            await this.resetTerminal();
+        }
+        await this.resetIsRunning();
         await this.checkIfNeedUpdate();
         this.IDSet();
-            
     }
     async tryAutoConnect(){
         if(this.BUSY == true){
@@ -1614,33 +1708,37 @@ class ReplJS{
         this.BUSY = true;
         if(this.DEBUG_CONSOLE_ON) console.log("fcg: in tryAutoConnect");
     
-        window.ATERM.writeln("Connecting to XRP..."); //let the user know that we are trying to connect.
+        //window.ATERM.writeln("Connecting to XRP..."); //let the user know that we are trying to connect.
 
-        if(this.DEBUG_CONSOLE_ON) console.log("%cTrying auto connect...", "color: yellow");
+        if(this.DEBUG_CONSOLE_ON) console.log("%cTrying auto connect...");
         var ports = await navigator.serial.getPorts();
         if(Array.isArray(ports)){
             for(var ip=0; ip<ports.length; ports++){
                 if(this.checkPortMatching(ports[ip])) {
                     this.PORT = ports[ip];
                     if(this.DEBUG_CONSOLE_ON) console.log("%cAuto connected!", "color: lime");
-                    await this.openPort();
-                    this.BUSY = false;
-                    if (this.DEBUG_CONSOLE_ON) console.log("fcg: out of tryAutoConnect");
-                    return true;
+                    if (await this.openPort()){
+                        this.finishConnect();
+                        this.BUSY = false;
+                        if (this.DEBUG_CONSOLE_ON) console.log("fcg: out of tryAutoConnect");
+                        return true;
+                    }
                 }
             }
         } else {
             if(this.checkPortmatching(ports)) {
                 this.PORT = ports; 
                 if(this.DEBUG_CONSOLE_ON) console.log("%cAuto connected!", "color: lime");
-                await this.openPort();
-                this.BUSY = false;
-                if (this.DEBUG_CONSOLE_ON) console.log("fcg: out of tryAutoConnect");
+                if(await this.openPort()){
+                    this.finishConnect();
+                    this.BUSY = false;
+                    if (this.DEBUG_CONSOLE_ON) console.log("fcg: out of tryAutoConnect");
+                }
                 return true;
             }
         }
         if (this.DEBUG_CONSOLE_ON)
-            console.log("%cNot Auto connected...", "color: yellow");
+            console.log("%cNot Auto connected...");
             document.getElementById('IDConnectBTN').style.display = "block";
             this.BUSY = false;
 
@@ -1649,8 +1747,7 @@ class ReplJS{
         return false;
     }
 
-
-    async connect(){
+    async connectCable(){
         if(this.BUSY == true){
             return;
         }
@@ -1661,71 +1758,89 @@ class ReplJS{
         const usbProductId = this.USB_PRODUCT_ID;
         const usbProductMacId = this.USB_PRODUCT_MAC_ID;
 
-        if(!autoConnected){
-            if(this.DEBUG_CONSOLE_ON) console.log("fcg: in tryAutoConnect");
+        if(!autoConnected){    
+            if(this.DEBUG_CONSOLE_ON) console.log("fcg: trying manual USB Cable connect");
 
             this.BUSY = true;
             this.MANNUALLY_CONNECTING = true;
-            if(this.DEBUG_CONSOLE_ON) console.log("Trying manual connect..");
 
-            this.BLE_DEVICE = undefined; //just in case we were connected before.
-
-            // Function to connect to the device
-            await navigator.bluetooth.requestDevice({
-                filters: [{
-                    namePrefix: 'XRP'
-                    }], optionalServices: [ this.UART_SERVICE_UUID ]
-            })
-            .then(device => {
-                //console.log('Connecting to device...');
-                this.BLE_DEVICE = device;
-                return device.gatt.connect();
-            })
-            .then(servers => {
-                //console.log('Getting UART Service...');
-                return servers.getPrimaryService(this.UART_SERVICE_UUID);
-            })
-            .then(btService => {
-                this.btService = btService;
-                //console.log('Getting TX Characteristic...');
-                return btService.getCharacteristic(this.TX_CHARACTERISTIC_UUID);
-            })
-            .then(characteristic => {
-                //console.log('Connected to TX Characteristic');
-                this.WRITEBLE = characteristic;
-                //console.log('Getting RX Characteristic...');
-                return this.btService.getCharacteristic(this.RX_CHARACTERISTIC_UUID); 
-                // Now you can use the characteristic to send data
-            }) .then (characteristic => {
-                this.READBLE = characteristic;
-                //this.READBLE.addEventListener('characteristicvaluechanged', this.readloopBLE);
-                this.READBLE.startNotifications();
-                this.BLE_DEVICE.addEventListener('gattserverdisconnected', this.bleDisconnect);
-                this.finishConnect();
-            })
-            .catch(error => {
-                console.log('Error: ' + error);
+            await navigator.serial.requestPort({filters: [{ usbVendorId, usbProductId }, { usbVendorId, usbProductMacId }]}).then(async (port) => {
+                this.PORT = port;
+                if(this.DEBUG_CONSOLE_ON) console.log("%cManually connected!");
+                if(await this.openPort()){
+                    this.finishConnect();
+                }
+                else{
+                    window.alertMessage("Connection FAILED. Check cable and try again")
+                }
+            }).catch((err) => {
+                if (this.DEBUG_CONSOLE_ON) console.log("Not manually connected to USB Cable...");
+                document.getElementById('IDConnectBTN').style.display = "block";
             });
-
-            if(this.BLE_DEVICE == undefined){     
-                await navigator.serial.requestPort({filters: [{ usbVendorId, usbProductId }, { usbVendorId, usbProductMacId }]}).then(async (port) => {
-                    this.PORT = port;
-                    if(this.DEBUG_CONSOLE_ON) console.log("%cManually connected!", "color: lime");
-                    await this.openPort();
-                }).catch((err) => {
-                    if (this.DEBUG_CONSOLE_ON)
-                        console.log("Not manually connected...");
-                        document.getElementById('IDConnectBTN').style.display = "block";
-                    //alert("Didn't see XRP?\n\nCheck the following:\n* XRP is on\n* MicroUSB cable is plugged into XRP and computer\n* MicroUSB cable has data lines (some cables only transfer power)");
-                });
-            }
-
-
             this.MANNUALLY_CONNECTING = false;
             this.BUSY = false;
-            if (this.DEBUG_CONSOLE_ON)
-                console.log("fcg: out of Connect");
+            if (this.DEBUG_CONSOLE_ON) console.log("fcg: out of connectCable");
         }
+
+    }
+
+    async connectBLE(){
+
+        if(this.DEBUG_CONSOLE_ON) console.log("fcg: in connectBLE ");
+
+        this.BUSY = true;
+        this.MANNUALLY_CONNECTING = true;
+        if(this.DEBUG_CONSOLE_ON) console.log("Trying manual connectBLE..");
+
+        this.BLE_DEVICE = undefined; //just in case we were connected before.
+
+        var elapseTime = (Date.now() - this.BLE_DISCONNECT_TIME) / 1000;
+        if (elapseTime > 60){
+            await window.alertMessage("Error while detecting bluetooth devices. \nPlease refresh the browser and try again.")
+            return;
+        }
+
+        // Function to connect to the device
+        await navigator.bluetooth.requestDevice({
+            filters: [{
+                namePrefix: 'XRP'
+                }], optionalServices: [ this.UART_SERVICE_UUID ]
+        })
+        .then(device => {
+            //console.log('Connecting to device...');
+            this.BLE_DEVICE = device;
+            return device.gatt.connect();
+        })
+        .then(servers => {
+            //console.log('Getting UART Service...');
+            return servers.getPrimaryService(this.UART_SERVICE_UUID);
+        })
+        .then(btService => {
+            this.btService = btService;
+            //console.log('Getting TX Characteristic...');
+            return btService.getCharacteristic(this.TX_CHARACTERISTIC_UUID);
+        })
+        .then(characteristic => {
+            //console.log('Connected to TX Characteristic');
+            this.WRITEBLE = characteristic;
+            //console.log('Getting RX Characteristic...');
+            return this.btService.getCharacteristic(this.RX_CHARACTERISTIC_UUID); 
+            // Now you can use the characteristic to send data
+        }) .then (characteristic => {
+            this.READBLE = characteristic;
+            //this.READBLE.addEventListener('characteristicvaluechanged', this.readloopBLE);
+            this.READBLE.startNotifications();
+            this.BLE_DEVICE.addEventListener('gattserverdisconnected', this.bleDisconnect);
+            this.finishConnect();
+        })
+        .catch(error => {
+            console.log('Error: ' + error);
+        });
+
+        this.MANNUALLY_CONNECTING = false;
+        this.BUSY = false;
+        if (this.DEBUG_CONSOLE_ON) console.log("fcg: out of ConnectBLE");
+
     }
 
     async stop(){
@@ -1774,9 +1889,13 @@ class ReplJS{
     async disconnect(){
         if(this.PORT != undefined){
             this.DISCONNECT = true;
-            this.READER.cancel();
-            this.READER.releaseLock();
-            this.WRITER.releaseLock();
+            if(this.READER != undefined){
+                this.READER.cancel();
+                this.READER.releaseLock();
+            }
+            if(this.WRITER != undefined){
+                this.WRITER.releaseLock();
+            }
             this.PORT.close();
 
             this.READER = undefined;

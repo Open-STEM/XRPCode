@@ -178,6 +178,7 @@ Blockly.Python['xrp_r_refl'] = function (block) {
 Blockly.Python['xrp_yaw'] = function (block) {
   PY.definitions_['import_imu'] = 'from XRPLib.imu import IMU';
   PY.definitions_[`imu_setup`] = `imu = IMU.get_default_imu()\nimu.calibrate(1)`;
+  PY.definitions_['yaw_setup'] = 'imu.reset_yaw()'
   var code = `imu.get_yaw()`;
   return [code, Blockly.Python.ORDER_NONE];
 };
@@ -185,6 +186,7 @@ Blockly.Python['xrp_yaw'] = function (block) {
 Blockly.Python['xrp_roll'] = function (block) {
   PY.definitions_['import_imu'] = 'from XRPLib.imu import IMU';
   PY.definitions_[`imu_setup`] = `imu = IMU.get_default_imu()\nimu.calibrate(1)`;
+  PY.definitions_['roll_setup'] = 'imu.reset_roll()'
   var code = `imu.get_roll()`;
   return [code, Blockly.Python.ORDER_NONE];
 };
@@ -192,6 +194,7 @@ Blockly.Python['xrp_roll'] = function (block) {
 Blockly.Python['xrp_pitch'] = function (block) {
   PY.definitions_['import_imu'] = 'from XRPLib.imu import IMU';
   PY.definitions_[`imu_setup`] = `imu = IMU.get_default_imu()\nimu.calibrate(1)`;
+  PY.definitions_['pitch_setup'] = 'imu.reset_pitch()'
   var code = `imu.get_pitch()`;
   return [code, Blockly.Python.ORDER_NONE];
 };
