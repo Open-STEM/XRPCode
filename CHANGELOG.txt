@@ -16,6 +16,10 @@
     * If the XRP is turned back on / brought closer XRPCode will auto re-connect to the XRP within that 10 seconds
 * If you start the XRP and a program runs keeping the bluetooth from connecting then press reset and it will restart without running the program
 
+#### VSCode editor
+* The Python editor now supports intellisense and Python syntax
+* The Python editor also knows about XRPLib and the XRPLib API
+
 #### Fixed
 * Input is now accepted in XRP applications
 * The REPL stays live from run to run and has information from the last running program like globals and classes
