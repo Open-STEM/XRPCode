@@ -187,6 +187,89 @@ var blocklyToolbox = {
         },
         {
             "kind": "CATEGORY",
+            "name": "Controller",
+            "colour": "#a5a55b",
+            "contents": [
+                {
+                    "kind": "CATEGORY",
+                    "name": "JoyStick",
+                    "colour": "#a5a55b",
+                    "contents": [
+                        {
+                            "kind": "BLOCK",
+                            "type": "pestolink_get_controller_left_x"
+                        },
+                        {
+                            "kind": "BLOCK",
+                            "type": "pestolink_get_controller_left_y"
+                        },
+                        {
+                            "kind": "BLOCK",
+                            "type": "pestolink_get_controller_right_x"
+                        },
+                        {
+                            "kind": "BLOCK",
+                            "type": "pestolink_get_controller_right_y"
+                        },
+                        {
+                            "kind": "BLOCK",
+                            "type": "pestolink_get_axis",
+                            "inputs": {
+                                "axis": {"shadow": {"type": "math_number", "fields": {"axis": "0"}}}
+                            }
+                        },
+                    ]
+                },
+                {
+                    "kind": "CATEGORY",
+                    "name": "Buttons",
+                    "colour": "#a5a55b",
+                    "contents": [
+                        {
+                            "kind": "BLOCK",
+                            "type": "pestolink_is_a_pressed"
+                        },
+                        {
+                            "kind": "BLOCK",
+                            "type": "pestolink_is_b_pressed"
+                        },
+                        {
+                            "kind": "BLOCK",
+                            "type": "pestolink_is_x_pressed"
+                        },
+                        {
+                            "kind": "BLOCK",
+                            "type": "pestolink_is_y_pressed"
+                        },
+                        {
+                            "kind": "BLOCK",
+                            "type": "pestolink_is_right_trigger_pressed"
+                        },
+                        {
+                            "kind": "BLOCK",
+                            "type": "pestolink_is_left_trigger_pressed"
+                        },
+                        {
+                            "kind": "BLOCK",
+                            "type": "pestolink_is_right_bumper_pressed"
+                        },
+                        {
+                            "kind": "BLOCK",
+                            "type": "pestolink_is_left_bumper_pressed"
+                        },
+                        {
+                            "kind": "BLOCK",
+                            "type": "pestolink_get_button",
+                            "inputs":{
+                                "num": {"shadow": {"type": "math_number", "fields": {"num": "0"}}}
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "kind": "CATEGORY",
             "name": "Control Board",
             "colour": "#5ba580", // cool green
             "contents": [
