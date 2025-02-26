@@ -36,6 +36,7 @@ class ReplJS{
         this.COLLECTED_RAW_DATA = [];
 
         this.HAS_MICROPYTHON = false;
+        this.MACHINE_INFO = undefined;
 
         // Used to stop interaction with the RP2040
         this.BUSY = false;
@@ -504,7 +505,7 @@ class ReplJS{
     async getToNormal(omitOffset = 0){
         await this.getToRaw();  // Get to raw first so that unwanted messages are not printed (like another intro message)
 
-        this.startReaduntil("Raspberry Pi Pico W with RP2040");
+        this.startReaduntil("MicroPython");
         //this.startReaduntil("information.");
         // https://github.com/micropython/micropython/blob/master/tools/pyboard.py#L360 for "\r"
         await this.writeToDevice("\r" + this.CTRL_CMD_NORMALMODE);
@@ -758,7 +759,7 @@ class ReplJS{
 
         this.doPrintSeparator();
 
-        this.startReaduntil("Raspberry Pi Pico W with RP2040");
+        this.startReaduntil("MicroPython");
         await this.writeToDevice("\r" + this.CTRL_CMD_NORMALMODE);
         await this.haltUntilRead(3);
 
@@ -1113,6 +1114,7 @@ class ReplJS{
                     "import machine\n" +
 
                     "print(sys.implementation[1])\n" +
+                    "print(sys.implementation[2])\n" +
                     "try:\n" +
                     "    f = open(\"/lib/XRPLib/version.py\", \"r\")\n" +
                     "    while True:\n" +
@@ -1136,7 +1138,8 @@ class ReplJS{
 
         if(hiddenLines != undefined){
             if(hiddenLines[0].substring(2) != "ERROR"){
-                return [hiddenLines[0].substring(2), hiddenLines[1], hiddenLines[2]];
+                this.MACHINE_INFO = hiddenLines[1];
+                return [hiddenLines[0].substring(2), hiddenLines[2], hiddenLines[3]];
             }else{
                 console.error("Error getting version information");
             }
@@ -1343,7 +1346,13 @@ class ReplJS{
 
         //if no library or the library is out of date
         if(Number.isNaN(parseFloat(info[1])) || this.isVersionNewer(window.latestLibraryVersion, info[1])){
-            await this.updateLibrary(info[1]);
+            //we must be on the XRP version of the firmware
+            if(this.MACHINE_INFO.includes("XRP")){
+                await this.updateLibrary(info[1]);
+            }
+            else{
+                alertMessage("There is a new version of XRPLib. This version of XRPLib requires an XRP specific version of MicroPython. You must upgrade MicroPython first.")
+            }
         }
     }
 
@@ -1388,7 +1397,7 @@ class ReplJS{
         UIkit.modal(document.getElementById("IDProgressBarParent")).show();
         document.getElementById("IdProgress_TitleText").innerText = 'Update in Progress...';
 
-        let response = await fetch("lib/package.json");
+        let response = await fetch("lib/package.json" + "?version=" + window.latestLibraryVersion[2] + 1);
         response = await response.text();
         let jresp = JSON.parse(response);
         var urls = jresp.urls;
@@ -1404,7 +1413,7 @@ class ReplJS{
             let next = urls[i];
             var parts = next[0];
             parts = parts.replace("XRPLib", "lib/XRPLib");
-            await this.uploadFile(parts, await window.downloadFile(parts.replace("XRPExamples", "lib/Examples") + "?version=" + window.latestLibraryVersion[2]));
+            await this.uploadFile(parts, await window.downloadFile(parts.replace("XRPExamples", "lib/XRPExamples") + "?version=" + window.latestLibraryVersion[2]));
             cur_percent += percent_per;
         }
 
