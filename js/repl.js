@@ -481,10 +481,12 @@ class ReplJS{
             try{
                 if(typeof str == "string"){
                     //console.log("writing: " + str);
-                    await this.WRITEBLE.writeValue(this.str2ab(str));
+                    await this.bleQueue(this.str2ab(str)); 
+                    //await this.WRITEBLE.writeValue(this.str2ab(str));
                 }else{
                     //console.log("writing: " + this.TEXT_DECODER.decode(str));
-                    await this.WRITEBLE.writeValue(str);
+                    await this.bleQueue(str);
+                    //await this.WRITEBLE.writeValue(str);
                 }
             }catch(error){
                 console.log(error);
@@ -492,6 +494,21 @@ class ReplJS{
         }else{
             if(this.DEBUG_CONSOLE_ON) console.log("%cNot writing to device, none connected", "color: red");
         }
+    }
+
+    /**
+     *  bleQueue - If we haven't come back from the ble.writeValue then the GATT is still busy and we will miss items that are being sent
+     * This can be seen if you type very fast in the Shell 
+     */
+    Queue = Promise.resolve();
+    async  bleQueue(value){
+        this.Queue = this.Queue.then(async () => {
+            try {
+                await this.WRITEBLE.writeValue(value);
+            } catch (error) {
+                console.error('ble write failed:', error);
+            }
+        });
     }
 
     async softReset(){
@@ -706,6 +723,23 @@ class ReplJS{
         if(this.DEBUG_CONSOLE_ON) console.log("fcg: in executeLines");
         this.BUSY = true;
         this.forceTermNewline();
+
+        //when running from the IDE, let's clean up all the memory before the program runs to give maximum space to run (especially on the beta board)
+        var cleanUp = "import sys\n" +
+        "ble_modules = ['ble.blerepl', 'ble', 'ble.ble_uart_peripheral']\n" +
+        "for module in list(sys.modules.keys()):\n" +
+        "    if module not in ble_modules and 'XRPLib' not in module:\n" +
+        "        del sys.modules[module]\n" +
+        "essential_vars = ['ble_modules', 'gc', 'sys', 'rp2' , 'essential_vars', 'FILE_PATH']\n" +
+        "all_vars = dir()\n" +
+        "for var in all_vars:\n" +
+        "    if var not in essential_vars and not var.startswith('__'):\n" +
+        "        exec(f'del {var}')\n" +
+        "import gc\n" +
+        "gc.collect()\n" +
+        "print(gc.mem_free())\n"; 
+
+        lines = cleanUp + lines;
 
         // Get into raw mode
         await this.getToRaw();
