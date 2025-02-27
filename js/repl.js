@@ -736,8 +736,8 @@ class ReplJS{
         "    if var not in essential_vars and not var.startswith('__'):\n" +
         "        exec(f'del {var}')\n" +
         "import gc\n" +
-        "gc.collect()\n" +
-        "print(gc.mem_free())\n"; 
+        "gc.collect()\n";
+        //"print(gc.mem_free())\n"; 
 
         lines = cleanUp + lines;
 
@@ -1416,12 +1416,15 @@ class ReplJS{
                             "The current version is " + curVer +
                             " and the new version is version " + window.latestLibraryVersion[0] + "." + window.latestLibraryVersion[1] + "." + window.latestLibraryVersion[2] +"<br>";
 
+        /*
         if(REPL.BLE_DEVICE != undefined){
 
             message += "<br>You will need to connect your XRP with a USB cable in order to update XRPLib";
             await alertMessage(message);
             return;
         }
+        */
+
         message += "Click OK to update the XRP to the latest version.";
         let answer = await window.confirmMessage(message);
         if (!answer) {
