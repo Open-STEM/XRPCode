@@ -1,3 +1,17 @@
+# Version 1.2.0
+
+## Updated version of Micropython and XRPLib
+There is now a version of Micropython that is specific to the XRP. Going forward from Micropython version 1.25.0 the XRP should use the XRP specific version of Micropython.
+XRPLib has also been updated to work specifically with the XRP versions of Micropython.
+
+### Fixed
+* We needed to stop reseting Micropython when a program ended when we added bluetooth support, since that would also reset the bluetooth connection. This gave an added benefit of having all of your global variables and classes still in memory for debugging.
+But this created a bug where the second time a program was run it could run out of memory. The memory is now cleared of all modules, except XRPLib, and variables that are not needed when the a program is run from XRPCode.
+* The above fix also fixed a problem for programs that used more than one file. Updates to imported parts of the program are now updated each time the program is run.
+* When using XRPCode over bluetooth there was a problem of missing characters in the terminal if a person was typing too fast. That has been fixed.
+*  Updates of XRPLib were only being allowed if you were connected via a USB cable. You can now also update the library over bluetooth. Although it will always be much faster when using a cable.
+
+
 # Version 1.1.0
 
 #### Bluetooth support
