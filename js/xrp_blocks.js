@@ -12,7 +12,7 @@ Blockly.Blocks['xrp_motor_effort'] = {
     this.appendDummyInput()
       .appendField("Motor:")
       .appendField(new Blockly.FieldDropdown([["Left", "1"], ["Right", "2"], ["3", "3"], ["4", "4"]]), "MOTOR")
-      .appendField("Effort:");
+      .appendField("%{BKY_EFFORT_MSG}");
     this.appendValueInput("effort")
       .setCheck("Number");
     this.setInputsInline(true);

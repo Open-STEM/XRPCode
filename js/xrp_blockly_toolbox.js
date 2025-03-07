@@ -2,7 +2,7 @@ var blocklyToolbox = {
     "contents": [
         {
             "kind": "CATEGORY",
-            "name": "Individual Motors",
+            "name": "%{BKY_INDIVIDUAL_MOTORS}",
             "colour": "#a55b65", // crimson red
             "contents": [
                 {
