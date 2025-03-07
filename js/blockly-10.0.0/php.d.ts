@@ -4,4 +4,4 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-export declare const pythonGenerator: any;
+export declare const phpGenerator: any;
