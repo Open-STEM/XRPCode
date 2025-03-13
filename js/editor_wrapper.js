@@ -35,6 +35,10 @@ class EditorWrapper{
         this.EDITOR_DIV.classList.add("editor");
         this._container.element.appendChild(this.EDITOR_DIV);
 
+        this.ERROR_DIV = document.createElement("div");
+        this.ERROR_DIV.style.position = "absolute";
+        this.ERROR_DIV.innerHTML = "The code in this program will not work on a Beta board.";
+
         this.defaultCode =   "from XRPLib.defaults import *\n\n" +
                              "# available variables from defaults: left_motor, right_motor, drivetrain,\n" +
                              "#      imu, rangefinder, reflectance, servo_one, board, webserver\n" +
@@ -252,7 +256,12 @@ class EditorWrapper{
         if(this.BLOCKLY_WORKSPACE && data != undefined){
             console.log("loaded workspace early notice");
             this.LOADING_BLOCKLY = true; //let the onchange event know that we are loading
-            Blockly.serialization.workspaces.load(JSON.parse(data), this.BLOCKLY_WORKSPACE);
+            try{
+                Blockly.serialization.workspaces.load(JSON.parse(data), this.BLOCKLY_WORKSPACE);
+            }
+            catch{
+                console.log("blockly load failed turnIntoBlocklyViewer")
+            }
         }
 
         // This must run after the Editor is added to the DOM document
@@ -317,12 +326,19 @@ class EditorWrapper{
 
             // Restoring of editor state
             var lastEditorValue = localStorage.getItem("EditorValue" + this.ID);
-            if(data != undefined){
+            if(data != undefined || lastEditorValue != null){ 
+                var data2 = data;
+                if(data == undefined){
+                    data2 = lastEditorValue;
+                }
                 this.LOADING_BLOCKLY = true; //let the onchange event know that we are loading
-                Blockly.serialization.workspaces.load(JSON.parse(data), this.BLOCKLY_WORKSPACE);
-            }else if(lastEditorValue != null){
-                this.LOADING_BLOCKLY = true; //let the onchange event know that we are loading
-                Blockly.serialization.workspaces.load(JSON.parse(lastEditorValue), this.BLOCKLY_WORKSPACE);
+                try{
+                    Blockly.serialization.workspaces.load(JSON.parse(data2), this.BLOCKLY_WORKSPACE);
+                }
+                catch(e){
+                    //console.log(e);
+                    this.EDITOR_DIV.replaceChild(this.ERROR_DIV, this.EDITOR_DIV.childNodes[0]);
+                }
             }else{
                 // When adding default editors, give them a path but make each unique by looking at all other open editors
                 this.setPath("/untitled-" + this.ID + ".blocks");
