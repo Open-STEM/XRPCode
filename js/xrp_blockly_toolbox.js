@@ -1,4 +1,4 @@
-var blocklyToolbox = {
+var baseToolbox = {
     "contents": [
         {
             "kind": "CATEGORY",
@@ -547,3 +547,5 @@ var blocklyToolbox = {
     "id": "toolbox",
     "style": "display: none"
 }
+var blocklyToolbox = JSON.parse(JSON.stringify(baseToolbox));
+
