@@ -1,3 +1,10 @@
+# Version 1.2.1
+
+## Support for new XRP control board 
+* Updates appropriate firmware for the board
+* Adds a block for the color LED
+
+
 # Version 1.2.0
 
 ## Updated version of Micropython and XRPLib

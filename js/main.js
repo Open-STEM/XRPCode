@@ -7,7 +7,7 @@ import { configNonBeta } from './nonbetaConfig.js';
          VERSION NUMBERS
 */
 
-const showChangelogVersion = "1.2.0";  //update all instances of ?version= in the index file to match the version. This is needed for local cache busting
+const showChangelogVersion = "1.2.1";  //update all instances of ?version= in the index file to match the version. This is needed for local cache busting
 window.latestMicroPythonVersion = [1, 25, 0];
 window.xrpID = "";
 
