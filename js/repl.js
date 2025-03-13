@@ -7,8 +7,11 @@ class ReplJS{
         this.TEXT_ENCODER = new TextEncoder();  // Used to write text to MicroPython
         this.TEXT_DECODER = new TextDecoder();  // Used to read text from MicroPython
 
-        this.USB_VENDOR_ID = 11914;     // For filtering ports during auto or manual selection
-        this.USB_PRODUCT_ID = 5;        // For filtering ports during auto or manual selection
+        this.USB_VENDOR_ID_BETA = 11914;     // For filtering ports during auto or manual selection
+        this.USB_VENDOR_ID = 6991;     // For filtering ports during auto or manual selection
+        this.USB_PRODUCT_ID_BETA = 5;        // For filtering ports during auto or manual selection
+        this.USB_PRODUCT_ID = 70;        // For filtering ports during auto or manual selection
+
         this.USB_PRODUCT_MAC_ID = 10;   // For filtering ports during auto or manual selection
 
         //bluetooth information
@@ -37,6 +40,7 @@ class ReplJS{
 
         this.HAS_MICROPYTHON = false;
         this.MACHINE_INFO = undefined;
+        this.PROCESSOR = undefined;
 
         // Used to stop interaction with the RP2040
         this.BUSY = false;
@@ -52,6 +56,7 @@ class ReplJS{
         this.onData = undefined;
         this.onConnect = undefined;
         this.IDSet = undefined;
+        this.pluginCheck = undefined;
         this.onDisconnect = undefined;
         this.onFSData = undefined;
         this.doPrintSeparator = undefined;
@@ -155,7 +160,7 @@ class ReplJS{
     // Returns true if product and vendor ID match for MicroPython, otherwise false #
     checkPortMatching(port){
         var info = port.getInfo();
-        if((info.usbProductId == this.USB_PRODUCT_ID || info.usbProductId == this.USB_PRODUCT_MAC_ID) && info.usbVendorId == this.USB_VENDOR_ID){
+        if((info.usbProductId == this.USB_PRODUCT_ID  && info.usbVendorId == this.USB_VENDOR_ID) || (info.usbProductId == this.USB_PRODUCT_ID_BETA  && info.usbVendorId == this.USB_VENDOR_ID_BETA)){
             return true;
         }
         return false;
@@ -586,9 +591,13 @@ class ReplJS{
         }
         this.BUSY = true;
 
+        let vpin = '28';
+        if(this.MACHINE_INFO.includes("XRP")){
+            vpin = "'BOARD_VIN_MEASURE'";
+        }
+        
         var cmd =   "from machine import ADC, Pin\n" +
-                    "print(ADC(Pin(28)).read_u16())\n";
-
+                    'print(ADC(Pin(' + vpin + ')).read_u16())\n';
 
         var hiddenLines = await this.writeUtilityCmdRaw(cmd, true, 1);
 
@@ -1168,11 +1177,18 @@ class ReplJS{
 
         await this.getToNormal(3);
         this.BUSY = false;
-        if(this.DEBUG_CONSOLE_ON) console.log("fcg: out of getVerionINfo");
+        if(this.DEBUG_CONSOLE_ON) console.log("fcg: out of getVersionInfo");
 
         if(hiddenLines != undefined){
             if(hiddenLines[0].substring(2) != "ERROR"){
                 this.MACHINE_INFO = hiddenLines[1];
+                
+                if (hiddenLines[1].includes('RP2350')) {
+                    this.PROCESSOR = 2350;
+                } else if (hiddenLines[1].includes('RP2040')) {
+                    this.PROCESSOR = 2040;
+                }
+                
                 return [hiddenLines[0].substring(2), hiddenLines[2], hiddenLines[3]];
             }else{
                 console.error("Error getting version information");
@@ -1522,7 +1538,11 @@ class ReplJS{
         }
 
         window.setPercent(35);
-        let data = await (await fetch("micropython/firmware.uf2")).arrayBuffer();
+        let firmware = "micropython/firmware2040.uf2"
+        if(this.PROCESSOR = 2350){
+            firmware = "micropython/firmware2350.uf2"
+        }
+        let data = await (await fetch(firmware)).arrayBuffer();
         window.setPercent(85);
         //message to click on Edit Files
         await writable.write(data);
@@ -1694,6 +1714,7 @@ class ReplJS{
         await this.resetIsRunning();
         await this.checkIfNeedUpdate();
         this.IDSet();
+        this.pluginCheck();
     }
     async tryAutoConnect(){
         if(this.BUSY == true){
@@ -1748,9 +1769,10 @@ class ReplJS{
 
         var autoConnected = await this.tryAutoConnect();
 
-        const usbVendorId = this.USB_VENDOR_ID;
-        const usbProductId = this.USB_PRODUCT_ID;
-        const usbProductMacId = this.USB_PRODUCT_MAC_ID;
+        const filters = [
+            { usbVendorId: this.USB_VENDOR_ID_BETA, usbProductId: this.USB_PRODUCT_ID_BETA },
+            { usbVendorId: this.USB_VENDOR_ID, usbProductId: this.USB_PRODUCT_ID }
+          ];
 
         if(!autoConnected){    
             if(this.DEBUG_CONSOLE_ON) console.log("fcg: trying manual USB Cable connect");
@@ -1758,7 +1780,7 @@ class ReplJS{
             this.BUSY = true;
             this.MANNUALLY_CONNECTING = true;
 
-            await navigator.serial.requestPort({filters: [{ usbVendorId, usbProductId }, { usbVendorId, usbProductMacId }]}).then(async (port) => {
+            await navigator.serial.requestPort({filters}).then(async (port) => {
                 this.PORT = port;
                 if(this.DEBUG_CONSOLE_ON) console.log("%cManually connected!");
                 if(await this.openPort()){

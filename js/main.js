@@ -1,4 +1,6 @@
 import { GoldenLayout, LayoutConfig } from "../golden-layout/bundle/esm/golden-layout.js";
+import { configNonBeta } from './nonbetaConfig.js';
+
 
 
 /*
@@ -678,7 +680,56 @@ function registerShell(_container, state){
             document.getElementById('IDXRPName').innerHTML = "XRP-" + window.xrpID.slice(-5);
             document.getElementById('IDXRPName').style.display = "block";
          }
+    }
 
+    REPL.pluginCheck = async () =>{
+        //check if this is a beta or nonbeta board
+        // set the localstorage for this type
+        // Add to Blockly if this is a nonbeta board
+        // refresh the editors.
+
+        var needsUpdate = false;
+        xrpConfig = localStorage.getItem("xrpconfig");
+        if(REPL.PROCESSOR == 2350){
+            if(xrpConfig == null || xrpConfig === "beta"){
+                //we need to set things up
+                localStorage.setItem("xrpconfig", "nonbeta");
+                await configNonBeta();
+                needsUpdate = true;
+            }
+        }
+        else{
+            if(xrpConfig != null && xrpConfig === "nonbeta"){
+                //we need to go back to beta
+                localStorage.setItem("xrpconfig", "beta");
+                blocklyToolbox = baseToolbox;
+                servoNames = [["1", "1"], ["2", "2"]];
+                needsUpdate = true;
+            }
+
+        }
+        if(needsUpdate){
+            for( var editor in EDITORS){
+                if(EDITORS[editor].isBlockly){
+                    var ed = EDITORS[editor];
+                    ed.BLOCKLY_WORKSPACE.updateToolbox(blocklyToolbox);
+
+                    //make sure the editor is pointing to blockly div incase there was an error before.
+                    ed.EDITOR_DIV.replaceChild(ed.BLOCKLY_DIV, ed.EDITOR_DIV.childNodes[0]);
+
+                    ed.BLOCKLY_WORKSPACE.clear();
+                    //ed.BLOCKLY_DIV.innerHTML = "";
+                    var data = localStorage.getItem("EditorValue" + editor)
+                    try{
+                        Blockly.serialization.workspaces.load(JSON.parse(data), ed.BLOCKLY_WORKSPACE);
+                    }
+                    catch(e){
+                        ed.EDITOR_DIV.replaceChild(ed.ERROR_DIV, ed.EDITOR_DIV.childNodes[0]);
+                        //console.log(e);
+                    }
+                }
+            }
+        }
     }
     REPL.onFSData = (jsonStrData, fsSizeData) => {
         FS.updateTree(jsonStrData);
@@ -709,7 +760,11 @@ function registerShell(_container, state){
         message += "<br>Would you like to update now? If so, click OK to proceed with the update."
         let answer = await confirmMessage(message);
         if(answer){
-            await alertMessage("When the <b>Select Folder</b> window comes up, select the <b>RPI-RP2</b> drive when it appears.<br>Next, click on 'Edit Files' and wait for the XRP to connect.<br> This process may take a few seconds.");
+            let drive = "RPI-RP2"
+            if(REPL.PROCESSOR = 2350){
+                drive = "RP2350"
+            }
+            await alertMessage("When the <b><i>Select Folder</i></b>  window comes up, select the <b><i>" + drive +"</i></b> drive when it appears.<br>Next, click on <b><i>Edit Files</i></b> and wait for the XRP to reconnect.<br> This process may take a few seconds.");
             REPL.updateMicroPython();
         }
 
@@ -889,23 +944,28 @@ function registerEditor(_container, state) {
         //if Cable attached check to see that the power switch is on.
         // if BLE make sure the voltage is high enough
         const voltage = await REPL.batteryVoltage();
+        var image = '/images/XRP_Controller-Power.jpg'
+        if(REPL.PROCESSOR == 2350){
+            image = '/images/XRP-nonbeta-controller-power.jpg'
+        }
+
         if(REPL.BLE_DEVICE == undefined){
-            if(voltage < 0.4) {
+            if(voltage < 0.45) {
                 if(! await window.confirmMessage("The power switch on the XRP is not on. Motors and Servos will not work.<br>Turn on the switch before continuing." +
-                    "<br><img src='/images/XRP_Controller-Power.jpg' width=300>")) {
+                    "<br><img src=" + image + " width=300>")) {
                     return;
                 }
             }
         }else{
-            if(voltage < 0.4) { //the device must be connected to a USB power with the power switch turned off.
+            if(voltage < 0.45) { //the device must be connected to a USB power with the power switch turned off.
                     if(! await window.confirmMessage("The power switch on the XRP is not on. Motors and Servos will not work.<br>Turn on the switch before continuing." +
-                        "<br><img src='/images/XRP_Controller-Power.jpg' width=300>")) {
+                        "<br><img src==" + image + " width=300>")) {
                         return;
                     }
                 
             }else if(voltage < 5.0) {
                 if(await window.confirmMessage("<h1 style='text-align:center'>Low Battery Power! - Please Replace the Batteries</h1>" +
-                    "<br><div  style='text-align:center'> <img src='/images/sad-battery.png' width=200></div>")) {
+                    "<br><div  style='text-align:center'> <img src='/images/sad-battery.jpg' width=200></div>")) {
                     return;
                 }
             }
@@ -1009,6 +1069,13 @@ function registerEditor(_container, state) {
     EDITORS[editor.ID] = editor;
 }
 
+// determine the last XRP configuration (Beta or Non-Beta) and setup the Blockly editor appropriately
+// This check is re-done when an actual XRP is attached.
+var xrpConfig = localStorage.getItem("xrpconfig");
+if (xrpConfig != null && xrpConfig === "nonbeta"){
+    //add non-beta blocks
+    await configNonBeta();
+}
 
 // Register Golden layout panels
 myLayout.registerComponentConstructor("Filesystem", registerFilesystem);

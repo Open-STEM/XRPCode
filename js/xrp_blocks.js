@@ -255,11 +255,12 @@ Blockly.Blocks['xrp_getrightencoder'] = {
 };
 
 // Servo
+servoNames = [["1", "1"], ["2", "2"]];
 Blockly.Blocks['xrp_servo_deg'] = {
   init: function () {
     this.appendDummyInput()
       .appendField('Servo:')
-      .appendField(new Blockly.FieldDropdown([["1", "1"], ["2", "2"]]), "SERVO")
+      .appendField(new Blockly.FieldDropdown(servoNames), "SERVO")
       .appendField('Deg:');
     this.appendValueInput("degrees")
       .setCheck("Number")
