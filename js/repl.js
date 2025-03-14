@@ -7,8 +7,11 @@ class ReplJS{
         this.TEXT_ENCODER = new TextEncoder();  // Used to write text to MicroPython
         this.TEXT_DECODER = new TextDecoder();  // Used to read text from MicroPython
 
-        this.USB_VENDOR_ID = 11914;     // For filtering ports during auto or manual selection
-        this.USB_PRODUCT_ID = 5;        // For filtering ports during auto or manual selection
+        this.USB_VENDOR_ID_BETA = 11914;     // For filtering ports during auto or manual selection
+        this.USB_VENDOR_ID = 6991;     // For filtering ports during auto or manual selection
+        this.USB_PRODUCT_ID_BETA = 5;        // For filtering ports during auto or manual selection
+        this.USB_PRODUCT_ID = 70;        // For filtering ports during auto or manual selection
+
         this.USB_PRODUCT_MAC_ID = 10;   // For filtering ports during auto or manual selection
 
         //bluetooth information
@@ -36,6 +39,8 @@ class ReplJS{
         this.COLLECTED_RAW_DATA = [];
 
         this.HAS_MICROPYTHON = false;
+        this.MACHINE_INFO = undefined;
+        this.PROCESSOR = undefined;
 
         // Used to stop interaction with the RP2040
         this.BUSY = false;
@@ -51,6 +56,7 @@ class ReplJS{
         this.onData = undefined;
         this.onConnect = undefined;
         this.IDSet = undefined;
+        this.pluginCheck = undefined;
         this.onDisconnect = undefined;
         this.onFSData = undefined;
         this.doPrintSeparator = undefined;
@@ -154,7 +160,7 @@ class ReplJS{
     // Returns true if product and vendor ID match for MicroPython, otherwise false #
     checkPortMatching(port){
         var info = port.getInfo();
-        if((info.usbProductId == this.USB_PRODUCT_ID || info.usbProductId == this.USB_PRODUCT_MAC_ID) && info.usbVendorId == this.USB_VENDOR_ID){
+        if((info.usbProductId == this.USB_PRODUCT_ID  && info.usbVendorId == this.USB_VENDOR_ID) || (info.usbProductId == this.USB_PRODUCT_ID_BETA  && info.usbVendorId == this.USB_VENDOR_ID_BETA)){
             return true;
         }
         return false;
@@ -480,10 +486,12 @@ class ReplJS{
             try{
                 if(typeof str == "string"){
                     //console.log("writing: " + str);
-                    await this.WRITEBLE.writeValue(this.str2ab(str));
+                    await this.bleQueue(this.str2ab(str)); 
+                    //await this.WRITEBLE.writeValue(this.str2ab(str));
                 }else{
                     //console.log("writing: " + this.TEXT_DECODER.decode(str));
-                    await this.WRITEBLE.writeValue(str);
+                    await this.bleQueue(str);
+                    //await this.WRITEBLE.writeValue(str);
                 }
             }catch(error){
                 console.log(error);
@@ -491,6 +499,21 @@ class ReplJS{
         }else{
             if(this.DEBUG_CONSOLE_ON) console.log("%cNot writing to device, none connected", "color: red");
         }
+    }
+
+    /**
+     *  bleQueue - If we haven't come back from the ble.writeValue then the GATT is still busy and we will miss items that are being sent
+     * This can be seen if you type very fast in the Shell 
+     */
+    Queue = Promise.resolve();
+    async  bleQueue(value){
+        this.Queue = this.Queue.then(async () => {
+            try {
+                await this.WRITEBLE.writeValue(value);
+            } catch (error) {
+                console.error('ble write failed:', error);
+            }
+        });
     }
 
     async softReset(){
@@ -504,7 +527,7 @@ class ReplJS{
     async getToNormal(omitOffset = 0){
         await this.getToRaw();  // Get to raw first so that unwanted messages are not printed (like another intro message)
 
-        this.startReaduntil("Raspberry Pi Pico W with RP2040");
+        this.startReaduntil("MicroPython");
         //this.startReaduntil("information.");
         // https://github.com/micropython/micropython/blob/master/tools/pyboard.py#L360 for "\r"
         await this.writeToDevice("\r" + this.CTRL_CMD_NORMALMODE);
@@ -568,9 +591,13 @@ class ReplJS{
         }
         this.BUSY = true;
 
+        let vpin = '28';
+        if(this.MACHINE_INFO.includes("XRP")){
+            vpin = "'BOARD_VIN_MEASURE'";
+        }
+        
         var cmd =   "from machine import ADC, Pin\n" +
-                    "print(ADC(Pin(28)).read_u16())\n";
-
+                    'print(ADC(Pin(' + vpin + ')).read_u16())\n';
 
         var hiddenLines = await this.writeUtilityCmdRaw(cmd, true, 1);
 
@@ -706,6 +733,23 @@ class ReplJS{
         this.BUSY = true;
         this.forceTermNewline();
 
+        //when running from the IDE, let's clean up all the memory before the program runs to give maximum space to run (especially on the beta board)
+        var cleanUp = "import sys\n" +
+        "ble_modules = ['ble.blerepl', 'ble', 'ble.ble_uart_peripheral']\n" +
+        "for module in list(sys.modules.keys()):\n" +
+        "    if module not in ble_modules and 'XRPLib' not in module:\n" +
+        "        del sys.modules[module]\n" +
+        "essential_vars = ['ble_modules', 'gc', 'sys', 'rp2' , 'essential_vars', 'FILE_PATH']\n" +
+        "all_vars = dir()\n" +
+        "for var in all_vars:\n" +
+        "    if var not in essential_vars and not var.startswith('__'):\n" +
+        "        exec(f'del {var}')\n" +
+        "import gc\n" +
+        "gc.collect()\n";
+        //"print(gc.mem_free())\n"; 
+
+        lines = cleanUp + lines;
+
         // Get into raw mode
         await this.getToRaw();
 
@@ -758,7 +802,7 @@ class ReplJS{
 
         this.doPrintSeparator();
 
-        this.startReaduntil("Raspberry Pi Pico W with RP2040");
+        this.startReaduntil("MicroPython");
         await this.writeToDevice("\r" + this.CTRL_CMD_NORMALMODE);
         await this.haltUntilRead(3);
 
@@ -1113,6 +1157,7 @@ class ReplJS{
                     "import machine\n" +
 
                     "print(sys.implementation[1])\n" +
+                    "print(sys.implementation[2])\n" +
                     "try:\n" +
                     "    f = open(\"/lib/XRPLib/version.py\", \"r\")\n" +
                     "    while True:\n" +
@@ -1132,11 +1177,19 @@ class ReplJS{
 
         await this.getToNormal(3);
         this.BUSY = false;
-        if(this.DEBUG_CONSOLE_ON) console.log("fcg: out of getVerionINfo");
+        if(this.DEBUG_CONSOLE_ON) console.log("fcg: out of getVersionInfo");
 
         if(hiddenLines != undefined){
             if(hiddenLines[0].substring(2) != "ERROR"){
-                return [hiddenLines[0].substring(2), hiddenLines[1], hiddenLines[2]];
+                this.MACHINE_INFO = hiddenLines[1];
+                
+                if (hiddenLines[1].includes('RP2350')) {
+                    this.PROCESSOR = 2350;
+                } else if (hiddenLines[1].includes('RP2040')) {
+                    this.PROCESSOR = 2040;
+                }
+                
+                return [hiddenLines[0].substring(2), hiddenLines[2], hiddenLines[3]];
             }else{
                 console.error("Error getting version information");
             }
@@ -1343,7 +1396,13 @@ class ReplJS{
 
         //if no library or the library is out of date
         if(Number.isNaN(parseFloat(info[1])) || this.isVersionNewer(window.latestLibraryVersion, info[1])){
-            await this.updateLibrary(info[1]);
+            //we must be on the XRP version of the firmware
+            if(this.MACHINE_INFO.includes("XRP")){
+                await this.updateLibrary(info[1]);
+            }
+            else{
+                alertMessage("There is a new version of XRPLib. This version of XRPLib requires an XRP specific version of MicroPython. You must upgrade MicroPython first.")
+            }
         }
     }
 
@@ -1373,12 +1432,15 @@ class ReplJS{
                             "The current version is " + curVer +
                             " and the new version is version " + window.latestLibraryVersion[0] + "." + window.latestLibraryVersion[1] + "." + window.latestLibraryVersion[2] +"<br>";
 
+        /*
         if(REPL.BLE_DEVICE != undefined){
 
             message += "<br>You will need to connect your XRP with a USB cable in order to update XRPLib";
             await alertMessage(message);
             return;
         }
+        */
+
         message += "Click OK to update the XRP to the latest version.";
         let answer = await window.confirmMessage(message);
         if (!answer) {
@@ -1388,7 +1450,7 @@ class ReplJS{
         UIkit.modal(document.getElementById("IDProgressBarParent")).show();
         document.getElementById("IdProgress_TitleText").innerText = 'Update in Progress...';
 
-        let response = await fetch("lib/package.json");
+        let response = await fetch("lib/package.json" + "?version=" + window.latestLibraryVersion[2] + 1);
         response = await response.text();
         let jresp = JSON.parse(response);
         var urls = jresp.urls;
@@ -1404,7 +1466,7 @@ class ReplJS{
             let next = urls[i];
             var parts = next[0];
             parts = parts.replace("XRPLib", "lib/XRPLib");
-            await this.uploadFile(parts, await window.downloadFile(parts.replace("XRPExamples", "lib/Examples") + "?version=" + window.latestLibraryVersion[2]));
+            await this.uploadFile(parts, await window.downloadFile(parts.replace("XRPExamples", "lib/XRPExamples") + "?version=" + window.latestLibraryVersion[2]));
             cur_percent += percent_per;
         }
 
@@ -1476,7 +1538,11 @@ class ReplJS{
         }
 
         window.setPercent(35);
-        let data = await (await fetch("micropython/firmware.uf2")).arrayBuffer();
+        let firmware = "micropython/firmware2040.uf2"
+        if(this.PROCESSOR == 2350){
+            firmware = "micropython/firmware2350.uf2"
+        }
+        let data = await (await fetch(firmware)).arrayBuffer();
         window.setPercent(85);
         //message to click on Edit Files
         await writable.write(data);
@@ -1648,6 +1714,7 @@ class ReplJS{
         await this.resetIsRunning();
         await this.checkIfNeedUpdate();
         this.IDSet();
+        this.pluginCheck();
     }
     async tryAutoConnect(){
         if(this.BUSY == true){
@@ -1702,9 +1769,10 @@ class ReplJS{
 
         var autoConnected = await this.tryAutoConnect();
 
-        const usbVendorId = this.USB_VENDOR_ID;
-        const usbProductId = this.USB_PRODUCT_ID;
-        const usbProductMacId = this.USB_PRODUCT_MAC_ID;
+        const filters = [
+            { usbVendorId: this.USB_VENDOR_ID_BETA, usbProductId: this.USB_PRODUCT_ID_BETA },
+            { usbVendorId: this.USB_VENDOR_ID, usbProductId: this.USB_PRODUCT_ID }
+          ];
 
         if(!autoConnected){    
             if(this.DEBUG_CONSOLE_ON) console.log("fcg: trying manual USB Cable connect");
@@ -1712,7 +1780,7 @@ class ReplJS{
             this.BUSY = true;
             this.MANNUALLY_CONNECTING = true;
 
-            await navigator.serial.requestPort({filters: [{ usbVendorId, usbProductId }, { usbVendorId, usbProductMacId }]}).then(async (port) => {
+            await navigator.serial.requestPort({filters}).then(async (port) => {
                 this.PORT = port;
                 if(this.DEBUG_CONSOLE_ON) console.log("%cManually connected!");
                 if(await this.openPort()){

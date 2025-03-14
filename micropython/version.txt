@@ -1,1 +1,1 @@
-Current version of firmware.uf2 is RPI_PICO_W-20240602-v1.23.0.uf2
+Current version of firmware.uf2 is micropython_xrp_controller_beta.uf2 Beta 6
