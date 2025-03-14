@@ -1539,7 +1539,7 @@ class ReplJS{
 
         window.setPercent(35);
         let firmware = "micropython/firmware2040.uf2"
-        if(this.PROCESSOR = 2350){
+        if(this.PROCESSOR == 2350){
             firmware = "micropython/firmware2350.uf2"
         }
         let data = await (await fetch(firmware)).arrayBuffer();

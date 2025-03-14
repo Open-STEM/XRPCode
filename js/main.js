@@ -761,7 +761,7 @@ function registerShell(_container, state){
         let answer = await confirmMessage(message);
         if(answer){
             let drive = "RPI-RP2"
-            if(REPL.PROCESSOR = 2350){
+            if(REPL.PROCESSOR == 2350){
                 drive = "RP2350"
             }
             await alertMessage("When the <b><i>Select Folder</i></b>  window comes up, select the <b><i>" + drive +"</i></b> drive when it appears.<br>Next, click on <b><i>Edit Files</i></b> and wait for the XRP to reconnect.<br> This process may take a few seconds.");
