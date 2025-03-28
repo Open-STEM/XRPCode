@@ -9,6 +9,13 @@ import { configNonBeta } from './nonbetaConfig.js';
 
 const showChangelogVersion = "1.2.1";  //update all instances of ?version= in the index file to match the version. This is needed for local cache busting
 window.latestMicroPythonVersion = [1, 25, 0];
+
+// this is needed because version 1.25.0 is not released yet and so the version number is not changing. Some boards
+// got shipped with a version before this beta06. So this will help.
+window.latestMicroPythonVersionPlus = "beta06"
+//Set to true if latestMicroPythonVersionPlus is empty.
+window.MPVersionPlus = false;
+
 window.xrpID = "";
 
 
@@ -751,7 +758,7 @@ function registerShell(_container, state){
                 return;
             }
         }
-        var message = "The MicroPython on your XRP needs to be updated. The new version is " + window.latestMicroPythonVersion[0] + "." + window.latestMicroPythonVersion[1] + "." + window.latestMicroPythonVersion[2];
+        var message = "The MicroPython on your XRP needs to be updated. The new version is " + window.latestMicroPythonVersion[0] + "." + window.latestMicroPythonVersion[1] + "." + window.latestMicroPythonVersion[2] + " " + window.latestMicroPythonVersionPlus;
         if(REPL.BLE_DEVICE != undefined){
             message += "<br>You will need to connect your XRP with a USB cable in order to update MicroPython";
             await alertMessage(message);
