@@ -1170,7 +1170,8 @@ class ReplJS{
                     "            break\n" +
                     "except:\n" +
                     "    print(\"ERROR EX\")\n" +
-                    "print(''.join(['{:02x}'.format(b) for b in machine.unique_id()]));";
+                    "print(''.join(['{:02x}'.format(b) for b in machine.unique_id()]))\n" +
+                    "print(sys.version)";
                    
 
         var hiddenLines = await this.writeUtilityCmdRaw(cmd, true, 1);
@@ -1188,7 +1189,17 @@ class ReplJS{
                 } else if (hiddenLines[1].includes('RP2040')) {
                     this.PROCESSOR = 2040;
                 }
-                
+
+                if(window.latestMicroPythonVersionPlus != ""){
+                    if(hiddenLines[4].includes(window.latestMicroPythonVersionPlus)){
+                        window.MPversionPlus = true;
+                    }
+                    else{
+                        window.MPversionPlus = false;
+                    }
+                }
+
+
                 return [hiddenLines[0].substring(2), hiddenLines[2], hiddenLines[3]];
             }else{
                 console.error("Error getting version information");
@@ -1388,7 +1399,7 @@ class ReplJS{
 
         info[0]= info[0].replace(/[\(\)]/g, "").replace(/,\s/g, "."); //convert to a semantic version
         //if the microPython is out of date
-        if(this.isVersionNewer(window.latestMicroPythonVersion, info[0])){
+        if(this.isVersionNewer(window.latestMicroPythonVersion, info[0]) || window.MPversionPlus == false){
             // Need to update MicroPython
             //alert("Need to update Micropython")
             await this.showMicropythonUpdate();
