@@ -19,6 +19,7 @@ class ReplJS{
         this.btService = undefined;
         this.READBLE = undefined;
         this.WRITEBLE = undefined;
+        this.DATABLE = undefined;
         this.LASTBLEREAD = undefined;
         this.BLE_DATA = null;
         this.BLE_DATA_RESOLVE = null;
@@ -28,7 +29,8 @@ class ReplJS{
          // UUIDs for standard NORDIC UART service and characteristics
          this.UART_SERVICE_UUID = "6e400001-b5a3-f393-e0a9-e50e24dcca9e"; 
          this.TX_CHARACTERISTIC_UUID = "6e400002-b5a3-f393-e0a9-e50e24dcca9e"
-         this.RX_CHARACTERISTIC_UUID = "6e400003-b5a3-f393-e0a9-e50e24dcca9e"; 
+         this.RX_CHARACTERISTIC_UUID = "6e400003-b5a3-f393-e0a9-e50e24dcca9e";
+         this.DATA_CHARACTERISTIC_UUID = "92ae6088-f24d-4360-b1b1-a432a8ed36ff"
 
         this.XRP_SEND_BLOCK_SIZE = 250;  // wired can handle 255 bytes, but BLE 5.0 is only 250
 
@@ -326,7 +328,7 @@ class ReplJS{
                                     this.startJoyPackets();
                                     values = tempValue = [];
                                 }
-                                if(tempValue[index+1] == 102){
+                                else if(tempValue[index+1] == 102){
                                     //Stop Joystick packets on the input stream
                                     this.stopJoyPackets();
                                     values = tempValue = [];
@@ -345,7 +347,7 @@ class ReplJS{
                             //     1 - When we are running a program, we want all incoming lines to be pushed to the terminal
                             //     2 - Except the very first 'OK'. There are timing issues and this was the best place to catch it.
                             //            This makes the user output look a lot nicer with out the 'OK' showing up.
-                            if(this.SPECIAL_FORCE_OUTPUT_FLAG){
+                            if(this.SPECIAL_FORCE_OUTPUT_FLAG && values.length > 0){
                                 if (this.CATCH_OK){
                                     let v = this.TEXT_DECODER.decode(values)
                                     if(v.startsWith("OK")){
@@ -358,8 +360,9 @@ class ReplJS{
                                     this.onData(this.TEXT_DECODER.decode(values));
                                 }
                             }
-
-                            this.COLLECTED_DATA += this.TEXT_DECODER.decode(values);
+                            if(values.length > 0){
+                                this.COLLECTED_DATA += this.TEXT_DECODER.decode(values);
+                            }
 
                             // If raw flag set true, collect raw data for now
                             if(this.COLLECT_RAW_DATA == true){
@@ -421,6 +424,7 @@ class ReplJS{
         REPL.BLE_DISCONNECT_TIME = Date.now();
         REPL.WRITEBLE = undefined;
         REPL.READBLE = undefined;
+        REPL.DATABLE = undefined;
         REPL.DISCONNECT = true; // Will stop certain events and break any EOT waiting functions
         if(!REPL.STOP){ //If they pushed the STOP button then don't make it look disconnected it will be right back
             REPL.onDisconnect();
@@ -442,6 +446,7 @@ class ReplJS{
                 //console.log('Getting TX Characteristic...');
                 this.WRITEBLE =  await this.btService.getCharacteristic(this.TX_CHARACTERISTIC_UUID);
                 this.READBLE = await this.btService.getCharacteristic(this.RX_CHARACTERISTIC_UUID);
+                this.DATABLE = await this.btService.getCharacteristic(this.DATA_CHARACTERISTIC_UUID);
                 this.READBLE.startNotifications();
                 this.finishConnect();
                 if (this.DEBUG_CONSOLE_ON) console.log("fcg: out of tryAutoConnect");
@@ -1853,8 +1858,15 @@ class ReplJS{
             //console.log('Getting RX Characteristic...');
             return this.btService.getCharacteristic(this.RX_CHARACTERISTIC_UUID); 
             // Now you can use the characteristic to send data
-        }) .then (characteristic => {
+
+        }) .then(characteristic => {
+            //console.log('Connected to TX Characteristic');
             this.READBLE = characteristic;
+            //console.log('Getting DATA Characteristic...');
+            return this.btService.getCharacteristic(this.DATA_CHARACTERISTIC_UUID); 
+            // Now you can use the characteristic to send data
+        }).then (characteristic => {
+            this.DATABLE = characteristic;
             //this.READBLE.addEventListener('characteristicvaluechanged', this.readloopBLE);
             this.READBLE.startNotifications();
             this.BLE_DEVICE.addEventListener('gattserverdisconnected', this.bleDisconnect);
