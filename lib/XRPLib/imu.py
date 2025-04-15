@@ -556,3 +556,17 @@ class IMU():
         self.running_roll += delta_roll
         self.running_yaw += delta_yaw
         enable_irq(state)
+
+
+    
+    def html_rgb(data):
+        """
+        Collect readings for [data] RGB
+
+        :param data: RGB
+        """
+        r, g, b, c = data
+        red = pow((int((r/c) * 256) / 255), 2.5) * 255
+        green = pow((int((g/c) * 256) / 255), 2.5) * 255
+        blue = pow((int((b/c) * 256) / 255), 2.5) * 255
+        return red, green, blue
