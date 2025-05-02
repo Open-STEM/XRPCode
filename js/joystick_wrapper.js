@@ -271,11 +271,11 @@ class Joystick{
                 
                 // Assuming at least 6 Buttons
                 this.joysticksArray[this.bA] =  gamepad.buttons[0].value;
-                this.joysticksArray[this.bB] =  gamepad.buttons[0].value;
-                this.joysticksArray[this.bX] =  gamepad.buttons[0].value;
-                this.joysticksArray[this.bY] =  gamepad.buttons[0].value;
-                this.joysticksArray[this.bL] =  gamepad.buttons[0].value;
-                this.joysticksArray[this.bR] =  gamepad.buttons[0].value;
+                this.joysticksArray[this.bB] =  gamepad.buttons[1].value;
+                this.joysticksArray[this.bX] =  gamepad.buttons[2].value;
+                this.joysticksArray[this.bY] =  gamepad.buttons[3].value;
+                this.joysticksArray[this.bL] =  gamepad.buttons[4].value;
+                this.joysticksArray[this.bR] =  gamepad.buttons[5].value;
 
             }
         }
