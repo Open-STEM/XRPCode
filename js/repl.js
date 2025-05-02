@@ -8,9 +8,9 @@ class ReplJS{
         this.TEXT_DECODER = new TextDecoder();  // Used to read text from MicroPython
 
         this.USB_VENDOR_ID_BETA = 11914;     // For filtering ports during auto or manual selection
-        this.USB_VENDOR_ID = 6991;     // For filtering ports during auto or manual selection
+        this.USB_VENDOR_ID = 6991; //x1b4f    // For filtering ports during auto or manual selection
         this.USB_PRODUCT_ID_BETA = 5;        // For filtering ports during auto or manual selection
-        this.USB_PRODUCT_ID = 70;        // For filtering ports during auto or manual selection
+        this.USB_PRODUCT_ID = 70;    //x46    // For filtering ports during auto or manual selection
 
         this.USB_PRODUCT_MAC_ID = 10;   // For filtering ports during auto or manual selection
 
