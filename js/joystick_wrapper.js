@@ -141,7 +141,8 @@ class Joystick{
         const changes = [];
         for (let i = 0; i < current.length; i++) {
           // Only consider sending a change if the difference exceeds the tolerance
-          if (Math.abs(current[i] - last[i]) > tolerance) {
+          //BUGBUG: temp sending packets 0 - 3 (joysticks ) always
+          if (Math.abs(current[i] - last[i]) > tolerance || i < 4) {
             changes.push(i); // byte representing the array index
             changes.push(this.quantizeFloat(current[i])); // byte representing the new value
           }
