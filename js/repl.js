@@ -1515,6 +1515,8 @@ class ReplJS{
         window.resetPercentDelay();
         await this.getOnBoardFSTree();
         UIkit.modal(document.getElementById("IDProgressBarParent")).hide();
+        await window.alertMessage("The XRP must be restarted for changes to take affect. \n If XRP does not reconnect after 30 seconds refresh the browser and connect manually");
+        await this.writeToDevice(this.CTRL_CMD_SOFTRESET);
     }
 
     async updateMicroPython() {
