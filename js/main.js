@@ -1252,6 +1252,9 @@ async function dialogMessage(message){
 }
 
 const BASE = window.location.pathname.replace(/\/$/,'');
+if(BASE != ""){
+    BASE += '/'
+}
 
 async function downloadFile(filePath) {
     let response = await fetch(BASE + filePath);
