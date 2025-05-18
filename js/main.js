@@ -612,9 +612,13 @@ async function downloadFileFromPath(fullFilePaths) {
 var JOY = undefined;
 function registerJoy(_container, state){
     JOY = new Joystick(_container, state);
-    JOY.writeToDevice = (data) => { //REPL.writeToDevice(data);
+    JOY.writeToDevice = async (data) => { //REPL.writeToDevice(data);
         if(REPL.DATABLE != undefined){
-            REPL.DATABLE.writeValue(data);
+            try{
+                await REPL.DATABLE.writeValueWithResponse(data);
+            }catch{
+                console.log("error writing DATABLE data");
+            }
         }
     };
     REPL.startJoyPackets = () => JOY.startJoyPackets();

@@ -514,7 +514,7 @@ class ReplJS{
     async  bleQueue(value){
         this.Queue = this.Queue.then(async () => {
             try {
-                await this.WRITEBLE.writeValue(value);
+                await this.WRITEBLE.writeValueWithResponse(value);
             } catch (error) {
                 console.error('ble write failed:', error);
             }
