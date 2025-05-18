@@ -1251,8 +1251,10 @@ async function dialogMessage(message){
     await UIkit.modal(elm).show();
 }
 
+const BASE = window.location.pathname.replace(/\/$/,'');
+
 async function downloadFile(filePath) {
-    let response = await fetch(filePath);
+    let response = await fetch(BASE + filePath);
 
     if(response.status != 200) {
         throw new Error("Server Error");
