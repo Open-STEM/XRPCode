@@ -1251,7 +1251,7 @@ async function dialogMessage(message){
     await UIkit.modal(elm).show();
 }
 
-const BASE = window.location.pathname.replace(/\/$/,'');
+let BASE = window.location.pathname.replace(/\/$/,'');
 if(BASE != ""){
     BASE += '/'
 }
