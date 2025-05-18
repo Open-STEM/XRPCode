@@ -341,6 +341,25 @@ Blockly.Python['xrp_ws_start_server'] = function (block) {
   return code;
 };
 
+// Gamepad
+
+Blockly.Python['xrp_gp_get_value'] = function (block) {
+  PY.definitions_['import_gamepad'] = 'from XRPLib.joystick import *';
+  PY.definitions_[`gamepad_setup`] = `joy = Joystick.get_default_joystick()`;
+  PY.definitions_['gamepad_init'] = `joy.startBluetoothJoystick()`;
+  var value = block.getFieldValue("GPVALUE");
+  var code = `joy.getJoystickValue(joy.${value})`;
+  return [code , Blockly.Python.ORDER_NONE];
+};
+
+Blockly.Python['xrp_gp_button_pressed'] = function (block) {
+  PY.definitions_['import_gamepad'] = 'from XRPLib.joystick import *';
+  PY.definitions_[`gamepad_setup`] = `joy = Joystick.get_default_joystick()`;
+  PY.definitions_['gamepad_init'] = `joy.startBluetoothJoystick()`;
+  var value = block.getFieldValue("GPBUTTON");
+  var code = `joy.isJoystickButtonPressed(joy.${value})`;
+  return [code , Blockly.Python.ORDER_NONE];
+};
 
 //Logic
 Blockly.Python['xrp_sleep'] = function (block) {

@@ -256,6 +256,21 @@ var baseToolbox = {
                 },
             ]
         },
+        {
+            "kind": "CATEGORY",
+            "name": "Gamepad",
+            "colour": "#5b99a5", // turquoise
+            "contents": [
+                {
+                    "kind": "BLOCK",
+                    "type": "xrp_gp_get_value"
+                },
+                {
+                    "kind": "BLOCK",
+                    "type": "xrp_gp_button_pressed"
+                },
+            ]
+        },
          {
             "kind": "CATEGORY",
             "contents": [
