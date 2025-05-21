@@ -19,18 +19,6 @@ class Joystick{
 
     lastsentArray = [];
 
-    joysticks = {
-        x1: 0.0,
-        y1: 0.0,
-        x2: 0.0,
-        y2: 0.0,
-        bA: 0,
-        bB: 0,
-        bX: 0,
-        bY: 0,
-        bL: 0,
-        bR: 0
-    }
  
     //array indexes
     x1 = 0;
@@ -43,6 +31,14 @@ class Joystick{
     bY = 7;
     bL = 8;
     bR = 9;
+    tL = 10;
+    tR = 11;
+    bK = 12;
+    sT = 13;
+    dU = 14;
+    dD = 15;
+    dL = 16;
+    dR = 17;
 
     //keycodes being used
     left1 = 'KeyA';
@@ -59,6 +55,10 @@ class Joystick{
     buttonY = 'Digit4';
     bumperL = 'Digit5';
     bumperR = 'Digit6';
+    triggerL = 'Digit7';
+    triggerR = 'Digit8';
+    back = 'Digit9';
+    start = 'Digit0';
 
     listening = false;
 
@@ -143,7 +143,6 @@ class Joystick{
         const changes = [];
         for (let i = 0; i < current.length; i++) {
           // Only consider sending a change if the difference exceeds the tolerance
-          //BUGBUG: temp sending packets 0 - 3 (joysticks ) always
           if (Math.abs(current[i] - last[i]) > tolerance ) {
             changes.push(i); // byte representing the array index
             changes.push(this.quantizeFloat(current[i])); // byte representing the new value
@@ -215,6 +214,18 @@ class Joystick{
             case this.bumperR:
                 this.joysticksArray[this.bR] = 1;
                 break;
+            case this.triggerL:
+                this.joysticksArray[this.tL] = 1;
+                break;
+            case this.triggerR:
+                this.joysticksArray[this.tR] = 1;
+                break;
+            case this.back:
+                this.joysticksArray[this.bK] = 1;
+                break;
+            case this.start:
+                this.joysticksArray[this.sT] = 1;
+                break;
         }
     }
     stopMovement(keyCode){
@@ -261,6 +272,18 @@ class Joystick{
             case this.bumperR:
                 this.joysticksArray[this.bR] = 0;
                 break;
+            case this.triggerL:
+                this.joysticksArray[this.tL] = 0;
+                break;
+            case this.triggerR:
+                this.joysticksArray[this.tR] = 0;
+                break;
+            case this.back:
+                this.joysticksArray[this.bK] = 0;
+                break;
+            case this.start:
+                this.joysticksArray[this.sT] = 0;
+                break;
         }
     }
 
@@ -282,6 +305,14 @@ class Joystick{
                 this.joysticksArray[this.bY] =  gamepad.buttons[3].value;
                 this.joysticksArray[this.bL] =  gamepad.buttons[4].value;
                 this.joysticksArray[this.bR] =  gamepad.buttons[5].value;
+                this.joysticksArray[this.tL] =  gamepad.buttons[6].value;
+                this.joysticksArray[this.tR] =  gamepad.buttons[7].value;
+                this.joysticksArray[this.bK] =  gamepad.buttons[8].value;
+                this.joysticksArray[this.sT] =  gamepad.buttons[9].value;
+                this.joysticksArray[this.dU] =  gamepad.buttons[12].value;
+                this.joysticksArray[this.dD] =  gamepad.buttons[13].value;
+                this.joysticksArray[this.dL] =  gamepad.buttons[14].value;
+                this.joysticksArray[this.dR] =  gamepad.buttons[15].value;
 
             }
         }

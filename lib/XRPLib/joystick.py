@@ -16,18 +16,21 @@ class Joystick:
     BUTTON_Y = const(7)
     BUMPER_L = const(8)
     BUMPER_R = const(9)
+    TRIGGER_L = const(10)
+    TRIGGER_R = const(11)
+    BACK = const(12)
+    START = const(13)
+    DPAD_UP = const(14)
+    DPAD_DN = const(15)
+    DPAD_L = const(16)
+    DPAD_R = const(17)
 
     joyData = [
     0.0,
     0.0,
     0.0,
     0.0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0]
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0]
 
     @classmethod
     def get_default_joystick(cls):

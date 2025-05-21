@@ -259,7 +259,7 @@ var baseToolbox = {
         {
             "kind": "CATEGORY",
             "name": "Gamepad",
-            "colour": "#5b99a5", // turquoise
+            "colour": "#ff9248", // turquoise
             "contents": [
                 {
                     "kind": "BLOCK",
