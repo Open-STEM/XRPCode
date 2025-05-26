@@ -82,6 +82,10 @@ class BLEUART:
                 self._rx_buffer += self._ble.gatts_read(self._rx_handle)
                 if(self._rx_buffer.find(b'##XRPSTOP#' + b'#') != -1): #WARNING: This is broken up so it won't restart during an update or this file.
                     self._rx_buffer = bytearray()
+                    # set the bit in isrunning to tell main not to re-run the program so the IDE can connect
+                    FILE_PATH = '/lib/ble/isrunning'
+                    with open(FILE_PATH, 'r+b') as file:
+                        file.write(b'\x01')
                     import machine
                     machine.reset()
             elif conn_handle in self._connections and value_handle == self._data_rx_handle:

@@ -521,6 +521,11 @@ class ReplJS{
         });
     }
 
+    //This is writing to cause the XRP to reboot, so we don't expect a response from the BLE. So, we will not ask for one.
+    async writeSTOPtoBleDevice(str){
+        await this.WRITEBLE.writeValue(this.str2ab(str));
+    }
+
     async softReset(){
         return;
         this.startReaduntil("MPY: soft reboot");
@@ -1251,21 +1256,21 @@ class ReplJS{
                     "         file.seek(0)\n" +
                     "         file.write(b'\\x00')\n" +
                     "         doNothing = True\n" +
-                    "      else:\n" +
-                    "         file.seek(0)\n" +
-                    "         file.write(b'\\x01')\n" +
+                    //"      else:\n" +
+                    //"         file.seek(0)\n" +
+                    //"         file.write(b'\\x01')\n" +
                     "   if(not doNothing):\n" +
                     "       with open('"+fileToEx+"', mode='r') as exfile:\n" +
                     "           code = exfile.read()\n"+
                     "       execCode = compile(code, '" +fileToEx2+"', 'exec')\n" +
                     "       exec(execCode)\n" +
-                    "       with open(FILE_PATH, 'r+b') as file:\n" +
-                    "           file.write(b'\\x00')\n" +
+                    //"       with open(FILE_PATH, 'r+b') as file:\n" +
+                    //"           file.write(b'\\x00')\n" +
                     "except Exception as e:\n" +
                     "   import sys\n" +
                     "   sys.print_exception(e)\n"+
-                    "   with open(FILE_PATH, 'r+b') as file:\n" +
-                    "      file.write(b'\\x00')\n" +
+                    //"   with open(FILE_PATH, 'r+b') as file:\n" +
+                    //"      file.write(b'\\x00')\n" +
                     "finally:\n"+
                     "   import gc\n" +
                     "   gc.collect()\n" +
@@ -1602,8 +1607,8 @@ class ReplJS{
         if (result == undefined){
 
             if(this.BLE_DEVICE != undefined){
-                await this.writeToDevice(this.BLE_STOP_MSG);
-                return true;  //BUGBUG: not sure what happens if it now doesn't connect.
+                await this.writeSTOPtoBleDevice(this.BLE_STOP_MSG);
+                return false; 
             }
 
             this.startReaduntil("KeyboardInterrupt:");
@@ -1637,7 +1642,11 @@ class ReplJS{
     async checkIfMP(){
 
         if(! await this.stopTheRobot()){
+            if(this.BLE_DEVICE != undefined){
+                return false;
+            }
             this.HAS_MICROPYTHON = false;
+            
             let ans = await window.confirmMessage("XRPCode is having problems connecting to this XRP.<br>" +
                                                         "Two Options:" + 
                                                         "<ul><li>Unplug the XRP checking the cable on both ends</li>" +
@@ -1723,6 +1732,7 @@ class ReplJS{
             await this.getOnBoardFSTree();
             this.onConnect();
         }
+        else{return;}
         
         this.LAST_RUN = undefined;
         this.BUSY = false;
