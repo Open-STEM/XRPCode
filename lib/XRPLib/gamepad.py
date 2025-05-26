@@ -2,9 +2,9 @@ from ble.blerepl import uart
 import sys
 from micropython import const
 
-class Joystick:
+class Gamepad:
 
-    _DEFAULT_JOYSTICK_INSTANCE = None
+    _DEFAULT_GAMEPAD_INSTANCE = None
 
     X1 = const(0)
     Y1 = const(1)
@@ -33,19 +33,20 @@ class Joystick:
     0,0,0,0,0,0,0,0,0,0,0,0,0,0]
 
     @classmethod
-    def get_default_joystick(cls):
+    def get_default_gamepad(cls):
         """
         Get the default XRP bluetooth joystick instance. This is a singleton, so only one instance of the reflectance sensor will ever exist.
         """
-        if cls._DEFAULT_JOYSTICK_INSTANCE is None:
-            cls._DEFAULT_JOYSTICK_INSTANCE = cls()
-        return cls._DEFAULT_JOYSTICK_INSTANCE
+        if cls._DEFAULT_GAMEPAD_INSTANCE is None:
+            cls._DEFAULT_GAMEPAD_INSTANCE = cls()
+        cls._DEFAULT_GAMEPAD_INSTANCE.start()
+        return cls._DEFAULT_GAMEPAD_INSTANCE
 
     def __init__(self):
         """
         """
 
-    def startBluetoothJoystick(self):
+    def start(self):
         for i in range(len(self.joyData)):
             self.joyData[i] = 0.0
         uart.set_data_callback(self._data_callback)
@@ -53,14 +54,15 @@ class Joystick:
         sys.stdout.write(chr(101))
 
 
-    def stopBluetoothJoystick(self):
+    def stop(self):
+        uart.clear_data_callback()
         sys.stdout.write(chr(27))
         sys.stdout.write(chr(102))
 
-    def getJoystickValue(self, index):
+    def get_value(self, index):
         return -self.joyData[index] #returning the negative to make normal for user 
 
-    def isJoystickButtonPressed(self, index):
+    def is_button_pressed(self, index):
         return self.joyData[index] > 0      
 
     def _data_callback(self, data):

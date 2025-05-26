@@ -344,20 +344,18 @@ Blockly.Python['xrp_ws_start_server'] = function (block) {
 // Gamepad
 
 Blockly.Python['xrp_gp_get_value'] = function (block) {
-  PY.definitions_['import_gamepad'] = 'from XRPLib.joystick import *';
-  PY.definitions_[`gamepad_setup`] = `joy = Joystick.get_default_joystick()`;
-  PY.definitions_['gamepad_init'] = `joy.startBluetoothJoystick()`;
+  PY.definitions_['import_gamepad'] = 'from XRPLib.gamepad import *';
+  PY.definitions_[`gamepad_setup`] = `gp = Gamepad.get_default_gamepad()`;
   var value = block.getFieldValue("GPVALUE");
-  var code = `joy.getJoystickValue(joy.${value})`;
+  var code = `gp.get_value(gp.${value})`;
   return [code , Blockly.Python.ORDER_NONE];
 };
 
 Blockly.Python['xrp_gp_button_pressed'] = function (block) {
-  PY.definitions_['import_gamepad'] = 'from XRPLib.joystick import *';
-  PY.definitions_[`gamepad_setup`] = `joy = Joystick.get_default_joystick()`;
-  PY.definitions_['gamepad_init'] = `joy.startBluetoothJoystick()`;
+  PY.definitions_['import_gamepad'] = 'from XRPLib.gamepad import *';
+  PY.definitions_[`gamepad_setup`] = `gp = Gamepad.get_default_gamepad()`;
   var value = block.getFieldValue("GPBUTTON");
-  var code = `joy.isJoystickButtonPressed(joy.${value})`;
+  var code = `gp.is_button_pressed(gp.${value})`;
   return [code , Blockly.Python.ORDER_NONE];
 };
 

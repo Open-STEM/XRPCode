@@ -7,9 +7,9 @@
       ["XRPLib/differential_drive.py", "github:Open-STEM/XRP_Micropython/XRPLib/differential_drive.py"],
       ["XRPLib/encoded_motor.py", "github:Open-STEM/XRP_Micropython/XRPLib/encoded_motor.py"],
       ["XRPLib/encoder.py", "github:Open-STEM/XRP_Micropython/XRPLib/encoder.py"],
+      ["XRPLib/gamepad.py", "github:Open-STEM/XRP_Micropython/XRPLib/gamepad.py"],
       ["XRPLib/imu_defs.py", "github:Open-STEM/XRP_Micropython/XRPLib/imu_defs.py"],
       ["XRPLib/imu.py", "github:Open-STEM/XRP_Micropython/XRPLib/imu.py"],
-      ["XRPLib/joystick.py", "github:Open-STEM/XRP_Micropython/XRPLib/joystick.py"],
       ["XRPLib/motor_group.py", "github:Open-STEM/XRP_Micropython/XRPLib/motor_group.py"],
       ["XRPLib/motor.py", "github:Open-STEM/XRP_Micropython/XRPLib/motor.py"],
       ["XRPLib/pid.py", "github:Open-STEM/XRP_Micropython/XRPLib/pid.py"],
@@ -29,5 +29,5 @@
     "deps": [
       ["github:pimoroni/phew", "latest"]
     ],
-    "version": "2.0.2"
+    "version": "2.1.0"
   }
