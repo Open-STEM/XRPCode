@@ -524,7 +524,7 @@ class ReplJS{
     //This is writing to cause the XRP to reboot, so we don't expect a response from the BLE. So, we will not ask for one.
     async writeSTOPtoBleDevice(str){
         try{
-            await this.WRITEBLE.writeValueWithoutResponse(this.str2ab(str));
+            this.WRITEBLE.writeValue(this.str2ab(str));  //don't wait since the Windows timeout is long
         } catch(error){
             console.error('ble stop write failed:', error);
             //do nothing we expected an error
@@ -1910,7 +1910,7 @@ class ReplJS{
             this.STOP = true;  //let the executeLines code know when it stops, it stopped because the STOP button was pushed
             this.SPECIAL_FORCE_OUTPUT_FLAG = false; //turn off showing output so they don't see the keyboardInterrupt and stack trace.
             if(this.BLE_DEVICE != undefined){
-                await this.writeToDevice(this.BLE_STOP_MSG);
+                await this.writeSTOPtoBleDevice(this.BLE_STOP_MSG);
                 return;
             }
             
