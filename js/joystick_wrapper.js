@@ -293,27 +293,27 @@ class Joystick{
             const gamepad = gamepads[this.controllerIndex];
             if (gamepad) {                
                 // Assuming at least 4 axis
-                this.joysticksArray[this.x1] = gamepad.axes[0];
-                this.joysticksArray[this.y1] = gamepad.axes[1];
-                this.joysticksArray[this.x2] = gamepad.axes[2];
-                this.joysticksArray[this.y2] = gamepad.axes[3];
-                
-                // Assuming at least 6 Buttons
-                this.joysticksArray[this.bA] =  gamepad.buttons[0].value;
-                this.joysticksArray[this.bB] =  gamepad.buttons[1].value;
-                this.joysticksArray[this.bX] =  gamepad.buttons[2].value;
-                this.joysticksArray[this.bY] =  gamepad.buttons[3].value;
-                this.joysticksArray[this.bL] =  gamepad.buttons[4].value;
-                this.joysticksArray[this.bR] =  gamepad.buttons[5].value;
-                this.joysticksArray[this.tL] =  gamepad.buttons[6].value;
-                this.joysticksArray[this.tR] =  gamepad.buttons[7].value;
-                this.joysticksArray[this.bK] =  gamepad.buttons[8].value;
-                this.joysticksArray[this.sT] =  gamepad.buttons[9].value;
-                this.joysticksArray[this.dU] =  gamepad.buttons[12].value;
-                this.joysticksArray[this.dD] =  gamepad.buttons[13].value;
-                this.joysticksArray[this.dL] =  gamepad.buttons[14].value;
-                this.joysticksArray[this.dR] =  gamepad.buttons[15].value;
+                // Read axes (ensure enough axes exist)
+                this.joysticksArray[this.x1] = gamepad.axes.length > 0 ? gamepad.axes[0] : 0.0;
+                this.joysticksArray[this.y1] = gamepad.axes.length > 1 ? gamepad.axes[1] : 0.0;
+                this.joysticksArray[this.x2] = gamepad.axes.length > 2 ? gamepad.axes[2] : 0.0;
+                this.joysticksArray[this.y2] = gamepad.axes.length > 3 ? gamepad.axes[3] : 0.0;
 
+                // Read buttons (ensure enough buttons exist)
+                this.joysticksArray[this.bA] = gamepad.buttons.length > 0 ? gamepad.buttons[0].value : 0;
+                this.joysticksArray[this.bB] = gamepad.buttons.length > 1 ? gamepad.buttons[1].value : 0; 
+                this.joysticksArray[this.bX] = gamepad.buttons.length > 2 ? gamepad.buttons[2].value : 0; 
+                this.joysticksArray[this.bY] = gamepad.buttons.length > 3 ? gamepad.buttons[3].value : 0; 
+                this.joysticksArray[this.bL] = gamepad.buttons.length > 4 ? gamepad.buttons[4].value : 0; 
+                this.joysticksArray[this.bR] = gamepad.buttons.length > 5 ? gamepad.buttons[5].value : 0; 
+                this.joysticksArray[this.tL] =  gamepad.buttons.length > 6 ?gamepad.buttons[6].value : 0;
+                this.joysticksArray[this.tR] =  gamepad.buttons.length > 7 ?gamepad.buttons[7].value : 0;
+                this.joysticksArray[this.bK] =  gamepad.buttons.length > 8 ?gamepad.buttons[8].value : 0;
+                this.joysticksArray[this.sT] =  gamepad.buttons.length > 9 ?gamepad.buttons[9].value : 0;
+                this.joysticksArray[this.dU] =  gamepad.buttons.length > 12 ?gamepad.buttons[12].value : 0;
+                this.joysticksArray[this.dD] =  gamepad.buttons.length > 13 ?gamepad.buttons[13].value : 0;
+                this.joysticksArray[this.dL] =  gamepad.buttons.length > 14 ?gamepad.buttons[14].value : 0;
+                this.joysticksArray[this.dR] =  gamepad.buttons.length > 15 ?gamepad.buttons[15].value : 0;
             }
         }
     }
