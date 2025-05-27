@@ -524,12 +524,12 @@ class ReplJS{
     //This is writing to cause the XRP to reboot, so we don't expect a response from the BLE. So, we will not ask for one.
     async writeSTOPtoBleDevice(str){
         try{
-            this.WRITEBLE.writeValue(this.str2ab(str));  //don't wait since the Windows timeout is long
+            await this.WRITEBLE.writeValueWithResponse(this.str2ab(str));  //don't wait since the Windows timeout is long
         } catch(error){
             console.error('ble stop write failed:', error);
             //do nothing we expected an error
         }
-
+        this.BLE_DEVICE.gatt.disconnect();
     }
 
     async softReset(){
