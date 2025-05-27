@@ -24,6 +24,8 @@ class ReplJS{
         this.BLE_DATA = null;
         this.BLE_DATA_RESOLVE = null;
         this.BLE_STOP_MSG  = "##XRPSTOP##"
+        this.disconnectHappened = false;
+
 
 
          // UUIDs for standard NORDIC UART service and characteristics
@@ -35,7 +37,7 @@ class ReplJS{
         this.XRP_SEND_BLOCK_SIZE = 250;  // wired can handle 255 bytes, but BLE 5.0 is only 250
 
         // Set true so most terminal output gets passed to javascript terminal
-        this.DEBUG_CONSOLE_ON = false;
+        this.DEBUG_CONSOLE_ON = true;
 
         this.COLLECT_RAW_DATA = false;
         this.COLLECTED_RAW_DATA = [];
@@ -421,6 +423,7 @@ class ReplJS{
 
     bleDisconnect(){
         if(REPL.DEBUG_CONSOLE_ON) console.log("BLE Disconnected");
+        REPL.disconnectHappened = true;
         REPL.BLE_DISCONNECT_TIME = Date.now();
         REPL.WRITEBLE = undefined;
         REPL.READBLE = undefined;
@@ -529,7 +532,11 @@ class ReplJS{
             console.error('ble stop write failed:', error);
             //do nothing we expected an error
         }
-        this.BLE_DEVICE.gatt.disconnect();
+        this.disconnectHappened = false;
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        if(! this.disconnectHappened){
+            this.BLE_DEVICE.gatt.disconnect(); //the disconnect didn't happen so create a disconnect
+        }
     }
 
     async softReset(){
