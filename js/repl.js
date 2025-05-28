@@ -445,7 +445,19 @@ class ReplJS{
                 if(this.DEBUG_CONSOLE_ON) console.log("Trying ble auto reconnect...");
                 const server = await this.connectWithTimeout(this.BLE_DEVICE, 10000); //wait for 10seconds to see if it reconnects
                 //const server = await this.BLE_DEVICE.gatt.connect();
-                this.btService = await server.getPrimaryService(this.UART_SERVICE_UUID);
+                let attempts = 5;
+                for (let i = 0; i < attempts; i++) {
+                    try {
+                        this.btService = await server.getPrimaryService(this.UART_SERVICE_UUID);
+                        break;
+                    } catch (e) {
+                      if (/No Services found/.test(e.message) && i < attempts - 1) {
+                        await new Promise(r => setTimeout(r, 50));
+                      } else {
+                        throw e;
+                      }
+                    }
+                  }
                 //console.log('Getting TX Characteristic...');
                 this.WRITEBLE =  await this.btService.getCharacteristic(this.TX_CHARACTERISTIC_UUID);
                 this.READBLE = await this.btService.getCharacteristic(this.RX_CHARACTERISTIC_UUID);
