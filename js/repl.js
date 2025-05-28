@@ -452,7 +452,7 @@ class ReplJS{
                         break;
                     } catch (e) {
                       if (/No Services found/.test(e.message) && i < attempts - 1) {
-                        await new Promise(r => setTimeout(r, 50));
+                        await new Promise(r => setTimeout(r, 200));
                       } else {
                         throw e;
                       }
