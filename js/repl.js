@@ -445,6 +445,8 @@ class ReplJS{
                 if(this.DEBUG_CONSOLE_ON) console.log("Trying ble auto reconnect...");
                 const server = await this.connectWithTimeout(this.BLE_DEVICE, 10000); //wait for 10seconds to see if it reconnects
                 //const server = await this.BLE_DEVICE.gatt.connect();
+                await new Promise(r => setTimeout(r, 300));
+
                 let attempts = 5;
                 for (let i = 0; i < attempts; i++) {
                     try {
