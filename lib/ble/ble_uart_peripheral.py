@@ -4,6 +4,7 @@ import bluetooth
 #from .ble_advertising import advertising_payload
 import struct
 from micropython import const
+from machine import Timer
 
 #Advertise info
 # org.bluetooth.characteristic.gap.appearance.xml
@@ -47,6 +48,12 @@ _UART_SERVICE = (
     (_UART_TX, _UART_RX, _UART_DATA_RX, _UART_DATA_TX,),
 )
 
+_timer = Timer(-1)
+
+def delayedRestart(_arg):
+        import machine
+        machine.reset()
+
 class BLEUART:
     def __init__(self, ble, name="mpy-uart", rxbuf=100):
         self._ble = ble
@@ -86,8 +93,8 @@ class BLEUART:
                     FILE_PATH = '/lib/ble/isrunning'
                     with open(FILE_PATH, 'r+b') as file:
                         file.write(b'\x01')
-                    import machine
-                    machine.reset()
+                    # slight delay to avoid errors on the browser side.
+                    _timer.init(mode=Timer.PERIODIC, period=50, callback=delayedRestart)
             elif conn_handle in self._connections and value_handle == self._data_rx_handle:
                 new_data = self._ble.gatts_read(self._data_rx_handle)
                 if self._data_callback:
