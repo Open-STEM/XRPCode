@@ -451,17 +451,18 @@ class ReplJS{
 
     async bleConnect(){
         try{
-            const server = await this.connectWithTimeout(this.BLE_DEVICE, 10000); //wait for 10seconds to see if it reconnects
             await new Promise(r => setTimeout(r, 300));
+            const server = await this.connectWithTimeout(this.BLE_DEVICE, 10000); //wait for 10seconds to see if it reconnects
+            //await new Promise(r => setTimeout(r, 300));
 
-            let attempts = 5;
+            let attempts = 7;
             for (let i = 0; i < attempts; i++) {
                 try {
                     this.btService = await server.getPrimaryService(this.UART_SERVICE_UUID);
                     break;
                 } catch (e) {
                     if (/No Services found/.test(e.message) && i < attempts - 1) {
-                    await new Promise(r => setTimeout(r, 200));
+                    await new Promise(r => setTimeout(r, 300));
                     } else {
                     throw e;
                     }
@@ -478,7 +479,7 @@ class ReplJS{
             // Perform operations after successful connection
         } catch (error) {
             console.log('timed out: ', error);
-            window.alertMessage("Error connecting to the XRP. Please reset the XRP and then refresh this page and try again");
+            window.alertMessage("Error connecting to the XRP. Please refresh this page and try again");
             this.BLE_DEVICE = undefined;
             return false;
         }
@@ -1852,7 +1853,7 @@ class ReplJS{
             this.BLE_DEVICE = device;
         })
         .catch(error => {
-            window.alertMessage("*Error connecting to XRP. Please reset the XRP, then refresh this page and try again");
+            window.alertMessage("*Error connecting to XRP. Please refresh this page and try again");
             console.log('Error: ' + error);
         });
         document.getElementById("IdWaiting_TitleText").innerText = 'Connecting to XRP...';
