@@ -29,5 +29,5 @@
     "deps": [
       ["github:pimoroni/phew", "latest"]
     ],
-    "version": "2.1.0"
+    "version": "2.1.1"
   }
