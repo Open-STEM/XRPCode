@@ -37,7 +37,7 @@ class ReplJS{
         this.XRP_SEND_BLOCK_SIZE = 250;  // wired can handle 255 bytes, but BLE 5.0 is only 250
 
         // Set true so most terminal output gets passed to javascript terminal
-        this.DEBUG_CONSOLE_ON = true;
+        this.DEBUG_CONSOLE_ON = false;
 
         this.COLLECT_RAW_DATA = false;
         this.COLLECTED_RAW_DATA = [];
@@ -441,40 +441,46 @@ class ReplJS{
 
     async bleReconnect(){
         if(this.DISCONNECT){
-            try {
-                if(this.DEBUG_CONSOLE_ON) console.log("Trying ble auto reconnect...");
-                const server = await this.connectWithTimeout(this.BLE_DEVICE, 10000); //wait for 10seconds to see if it reconnects
-                //const server = await this.BLE_DEVICE.gatt.connect();
-                await new Promise(r => setTimeout(r, 300));
-
-                let attempts = 5;
-                for (let i = 0; i < attempts; i++) {
-                    try {
-                        this.btService = await server.getPrimaryService(this.UART_SERVICE_UUID);
-                        break;
-                    } catch (e) {
-                      if (/No Services found/.test(e.message) && i < attempts - 1) {
-                        await new Promise(r => setTimeout(r, 200));
-                      } else {
-                        throw e;
-                      }
-                    }
-                  }
-                //console.log('Getting TX Characteristic...');
-                this.WRITEBLE =  await this.btService.getCharacteristic(this.TX_CHARACTERISTIC_UUID);
-                this.READBLE = await this.btService.getCharacteristic(this.RX_CHARACTERISTIC_UUID);
-                this.DATABLE = await this.btService.getCharacteristic(this.DATA_CHARACTERISTIC_UUID);
-                this.READBLE.startNotifications();
-                this.finishConnect();
-                if (this.DEBUG_CONSOLE_ON) console.log("fcg: out of tryAutoConnect");
-                return true;
-                // Perform operations after successful connection
-            } catch (error) {
-                console.log('timed out: ', error);
-                this.BLE_DEVICE = undefined;
+            if(this.DEBUG_CONSOLE_ON) console.log("Trying ble auto reconnect...");
+            if(! REPL.bleConnect()){
                 REPL.onDisconnect();
                 document.getElementById('IDConnectBTN').disabled = false;
             }
+        }
+    }
+
+    async bleConnect(){
+        try{
+            const server = await this.connectWithTimeout(this.BLE_DEVICE, 10000); //wait for 10seconds to see if it reconnects
+            await new Promise(r => setTimeout(r, 300));
+
+            let attempts = 5;
+            for (let i = 0; i < attempts; i++) {
+                try {
+                    this.btService = await server.getPrimaryService(this.UART_SERVICE_UUID);
+                    break;
+                } catch (e) {
+                    if (/No Services found/.test(e.message) && i < attempts - 1) {
+                    await new Promise(r => setTimeout(r, 200));
+                    } else {
+                    throw e;
+                    }
+                }
+            }
+            //console.log('Getting TX Characteristic...');
+            this.WRITEBLE =  await this.btService.getCharacteristic(this.TX_CHARACTERISTIC_UUID);
+            this.READBLE = await this.btService.getCharacteristic(this.RX_CHARACTERISTIC_UUID);
+            this.DATABLE = await this.btService.getCharacteristic(this.DATA_CHARACTERISTIC_UUID);
+            this.READBLE.startNotifications();
+            this.finishConnect();
+            if (this.DEBUG_CONSOLE_ON) console.log("fcg: out of tryAutoConnect");
+            return true;
+            // Perform operations after successful connection
+        } catch (error) {
+            console.log('timed out: ', error);
+            window.alertMessage("Error connecting to the XRP. Please reset the XRP and then refresh this page and try again");
+            this.BLE_DEVICE = undefined;
+            return false;
         }
     }
 
@@ -545,11 +551,6 @@ class ReplJS{
         } catch(error){
             console.error('ble stop write failed:', error);
             //do nothing we expected an error
-        }
-        this.disconnectHappened = false;
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        if(! this.disconnectHappened){
-            this.BLE_DEVICE.gatt.disconnect(); //the disconnect didn't happen so create a disconnect
         }
     }
 
@@ -1421,7 +1422,7 @@ class ReplJS{
     async checkIfNeedUpdate(){
         //if no micropython on the XRP
         if(!this.HAS_MICROPYTHON){
-             await this.showMicropythonUpdate();
+             //await this.showMicropythonUpdate();
              return;
         }
 
@@ -1673,7 +1674,7 @@ class ReplJS{
                 return false;
             }
             this.HAS_MICROPYTHON = false;
-            
+            /*
             let ans = await window.confirmMessage("XRPCode is having problems connecting to this XRP.<br>" +
                                                         "Two Options:" + 
                                                         "<ul><li>Unplug the XRP checking the cable on both ends</li>" +
@@ -1681,6 +1682,7 @@ class ReplJS{
                                                         "<li>Click OK and then plug the XRP in again</li></ul>" + 
                                                         "<br>Or click CANCEL and XRPCode will reinstall MicroPython onto the XRP")
             return ans;
+            */
         }
 
         // do a softreset, but time out if no response
@@ -1699,43 +1701,10 @@ class ReplJS{
                 await this.PORT.open({ baudRate: 115200 });
                 this.WRITER = await this.PORT.writable.getWriter();     // Make a writer since this is the first time port opened
                 return true;
-    /*
-                this.readLoop();                // Start read loop
-                if(await this.checkIfMP()){
-                    if(this.HAS_MICROPYTHON == false){    //something went wrong, just get out of here
-                        return;
-                    }
-                    this.BUSY = false;
-                    await this.getToNormal();
-                    await this.getOnBoardFSTree();
-                    this.onConnect();
-                }
-
-                this.BUSY = false;
-                await this.checkIfNeedUpdate();
-                this.IDSet();
-    */            
             }catch(err){
                 if(err.name == "InvalidStateError"){
                     if(this.DEBUG_CONSOLE_ON) console.log("%cPort already open, everything good to go!", "color: lime");
                     return true;
-                /*
-                    if (await this.checkIfMP()){
-                        if(this.HAS_MICROPYTHON == false){    //something went wrong, just get out of here
-                            return;
-                        }
-                        this.onConnect();
-                        this.BUSY = false;
-                        await this.getToNormal();
-
-                        await this.getOnBoardFSTree();
-                    }
-
-                    this.BUSY = false;
-                    await this.checkIfNeedUpdate();
-                    this.IDSet();
-                */
-
                 }else if(err.name == "NetworkError"){
                     //alert("Opening port failed, is another application accessing this device/port?");
                     if(this.DEBUG_CONSOLE_ON) console.log("%cOpening port failed, is another application accessing this device/port?", "color: red");
@@ -1750,26 +1719,27 @@ class ReplJS{
     async finishConnect(){
         this.DISCONNECT  = false;
         this.readLoop(); 
-        if(await this.checkIfMP()){
-            if(this.HAS_MICROPYTHON == false){    //something went wrong, just get out of here
-                return;
-            }
-            this.BUSY = false;
-            await this.getToNormal();
-            await this.getOnBoardFSTree();
-            this.onConnect();
-        }
-        else{return;}
-        
+        if(! await this.checkIfMP()){
+            if(this.BLE_DEVICE != undefined){return;} //if ble then we are restarting and waiting for a reconnect
+            await window.alertMessage("MicroPython not found. Please try connecting again");
+            return;
+        }       
+        await this.getToNormal();
+        await this.getOnBoardFSTree();
+        this.onConnect();
         this.LAST_RUN = undefined;
         this.BUSY = false;
         if(this.PORT != undefined){ //if we connected via USB then we can release the BLE terminal
             await this.resetTerminal();
         }
-        await this.resetIsRunning();
+        //await this.resetIsRunning(); //Shouldn't need this anymore Is running only happens with a stop.
         await this.checkIfNeedUpdate();
         this.IDSet();
         this.pluginCheck();
+        if(this.BLE_DEVICE != undefined){
+            UIkit.modal(document.getElementById("IDWaitingParent")).hide();
+
+        }
     }
     async tryAutoConnect(){
         if(this.BUSY == true){
@@ -1880,41 +1850,16 @@ class ReplJS{
         .then(device => {
             //console.log('Connecting to device...');
             this.BLE_DEVICE = device;
-            return device.gatt.connect();
-        })
-        .then(servers => {
-            //console.log('Getting UART Service...');
-            return servers.getPrimaryService(this.UART_SERVICE_UUID);
-        })
-        .then(btService => {
-            this.btService = btService;
-            //console.log('Getting TX Characteristic...');
-            return btService.getCharacteristic(this.TX_CHARACTERISTIC_UUID);
-        })
-        .then(characteristic => {
-            //console.log('Connected to TX Characteristic');
-            this.WRITEBLE = characteristic;
-            //console.log('Getting RX Characteristic...');
-            return this.btService.getCharacteristic(this.RX_CHARACTERISTIC_UUID); 
-            // Now you can use the characteristic to send data
-
-        }) .then(characteristic => {
-            //console.log('Connected to TX Characteristic');
-            this.READBLE = characteristic;
-            //console.log('Getting DATA Characteristic...');
-            return this.btService.getCharacteristic(this.DATA_CHARACTERISTIC_UUID); 
-            // Now you can use the characteristic to send data
-        }).then (characteristic => {
-            this.DATABLE = characteristic;
-            //this.READBLE.addEventListener('characteristicvaluechanged', this.readloopBLE);
-            this.READBLE.startNotifications();
-            this.BLE_DEVICE.addEventListener('gattserverdisconnected', this.bleDisconnect);
-            this.finishConnect();
         })
         .catch(error => {
+            window.alertMessage("*Error connecting to XRP. Please reset the XRP, then refresh this page and try again");
             console.log('Error: ' + error);
         });
+        document.getElementById("IdWaiting_TitleText").innerText = 'Connecting to XRP...';
+        UIkit.modal(document.getElementById("IDWaitingParent")).show();
 
+        await this.bleConnect();
+        this.BLE_DEVICE.addEventListener('gattserverdisconnected', this.bleDisconnect);
         this.MANNUALLY_CONNECTING = false;
         this.BUSY = false;
         if (this.DEBUG_CONSOLE_ON) console.log("fcg: out of ConnectBLE");
@@ -1930,28 +1875,13 @@ class ReplJS{
         if(this.RUN_BUSY){  //if the program is running do ctrl-c until we know it has stopped
             this.STOP = true;  //let the executeLines code know when it stops, it stopped because the STOP button was pushed
             this.SPECIAL_FORCE_OUTPUT_FLAG = false; //turn off showing output so they don't see the keyboardInterrupt and stack trace.
-            if(this.BLE_DEVICE != undefined){
-                await this.writeSTOPtoBleDevice(this.BLE_STOP_MSG);
-                return;
-            }
-            
-            var count = 1;
-            /*
-                We are BUSY, this means that there is another thread that started the program.
-                Because they could be in a timer we are going to hammer ctrl-c until we know they are out of the program.
-                The problem with this is that we will end up sending a ctrl-c during the finally that is running the resetbot.
-            */
-            while (this.STOP) {
-                await this.writeToDevice("\r" + this.CTRL_CMD_KINTERRUPT);  // ctrl-C to interrupt any running program
-                count += 1;
-                if (count > 20){
-                    break;
-                }
-            }
+            document.getElementById("IdWaiting_TitleText").innerText = 'Stopping XRP...';
+            UIkit.modal(document.getElementById("IDWaitingParent")).show();
+            this.stopTheRobot();
             //document.getElementById('IDRunBTN').style.display = "block";
             return
-
         }
+        /*
         // I don't think this code will run anymore since there is no stop button when a program is not running.
 
         //The user pushed STOP while things were idle. Lets make sure the robot is stopped and run restbot.
@@ -1962,6 +1892,7 @@ class ReplJS{
         var cmd = "import XRPLib.resetbot\n"
         await this.writeUtilityCmdRaw(cmd, true, 1);
         await this.getToNormal(3);
+        */
     }
 
     async disconnect(){
