@@ -24,7 +24,6 @@ class ReplJS{
         this.BLE_DATA = null;
         this.BLE_DATA_RESOLVE = null;
         this.BLE_STOP_MSG  = "##XRPSTOP##"
-        this.disconnectHappened = false;
 
 
 
@@ -423,7 +422,6 @@ class ReplJS{
 
     bleDisconnect(){
         if(REPL.DEBUG_CONSOLE_ON) console.log("BLE Disconnected");
-        REPL.disconnectHappened = true;
         REPL.BLE_DISCONNECT_TIME = Date.now();
         REPL.WRITEBLE = undefined;
         REPL.READBLE = undefined;
