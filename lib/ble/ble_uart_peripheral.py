@@ -103,8 +103,8 @@ class BLEUART:
         elif event == _IRQ_GATTS_INDICATE_DONE:
             if self._handler:
                 self._handler()
-        else:
-            print("IRQ Event Code: " + str(event))
+        #else:
+            #print("IRQ Event Code: " + str(event))
 
     def any(self):
         return len(self._rx_buffer)
