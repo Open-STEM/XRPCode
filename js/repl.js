@@ -477,7 +477,7 @@ class ReplJS{
             // Perform operations after successful connection
         } catch (error) {
             console.log('timed out: ', error);
-            window.alertMessage("Error connecting to the XRP. Please refresh this page and try again");
+            await window.alertMessage("Error connecting to the XRP. Please refresh this page and try again");
             this.BLE_DEVICE = undefined;
             return false;
         }
