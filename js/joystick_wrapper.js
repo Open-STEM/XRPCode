@@ -163,9 +163,9 @@ class Joystick{
             this.updateStatus();
             const sending = this.getChangedBytes(this.joysticksArray, this.lastsentArray);
             if(sending[1] > 0){
-                await this.writeToDevice(sending); //(JSON.stringify(this.joysticks) + '\r');
+                this.lastsentArray = this.joysticksArray.slice();
+                await this.writeToDevice(sending); 
             }
-            this.lastsentArray = this.joysticksArray.slice();
             this.sendingPacket = false;
         }
     }
