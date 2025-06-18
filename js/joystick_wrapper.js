@@ -5,16 +5,24 @@ class Joystick{
 
 
     joysticksArray = [
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0
+        0.0, //x1
+        0.0, //y1
+        0.0, //x2
+        0.0, //y2
+        0, //bA
+        0, //bB
+        0, //bX
+        0, //bY
+        0, //bL
+        0, //bR
+        0, //tL
+        0, //tR
+        0, //bK
+        0, //sT
+        0, //dU
+        0, //dD
+        0, //dL
+        0  //dR
     ]
 
     lastsentArray = [];
@@ -105,11 +113,12 @@ class Joystick{
 
         this.intervalID = undefined;
         this.sendAPacket = this.sendAPacket.bind(this);
+        this.startListening(); //start listening for events
+
 
         // ### CALLBACKS ###
         // Functions defined outside this module but used inside
         this.writeToDevice = undefined;
-        this.startListening();
     }
     startPackets(){
         this.lastsentArray = this.joysticksArray.slice();
@@ -350,11 +359,13 @@ class Joystick{
 
         window.addEventListener("gamepadconnected", (event) => {
             this.controllerIndex = event.gamepad.index;
+            document.getElementById('IDGamePad').style.display = "block";
         });
 
         window.addEventListener("gamepaddisconnected", (event) => {
             if (this.controllerIndex === event.gamepad.index) {
                 this.controllerIndex = -1;
+                document.getElementById('IDGamePad').style.display = "none";
             }
         });
     }
