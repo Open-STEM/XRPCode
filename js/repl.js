@@ -420,7 +420,7 @@ class ReplJS{
     }
 
 
-    bleDisconnect(){
+    async bleDisconnect(){
         if(REPL.DEBUG_CONSOLE_ON) console.log("BLE Disconnected");
         REPL.BLE_DISCONNECT_TIME = Date.now();
         REPL.WRITEBLE = undefined;
@@ -434,6 +434,8 @@ class ReplJS{
         REPL.RUN_BUSY = false;
         REPL.STOP = false;
         REPL.BUSY = false; 
+        //bug must wait for a bit before trying to reconnect. Known Web Bluetooth bug.
+        await new Promise(r => setTimeout(r, 300));
         REPL.bleReconnect();
     }
 
@@ -453,14 +455,14 @@ class ReplJS{
             const server = await this.connectWithTimeout(this.BLE_DEVICE, 10000); //wait for 10seconds to see if it reconnects
             //await new Promise(r => setTimeout(r, 300));
 
-            let attempts = 7;
+            let attempts = 10;
             for (let i = 0; i < attempts; i++) {
                 try {
                     this.btService = await server.getPrimaryService(this.UART_SERVICE_UUID);
                     break;
                 } catch (e) {
                     if (/No Services found/.test(e.message) && i < attempts - 1) {
-                    await new Promise(r => setTimeout(r, 300));
+                    await new Promise(r => setTimeout(r, 400));
                     } else {
                     throw e;
                     }
@@ -1834,6 +1836,8 @@ class ReplJS{
 
         this.BLE_DEVICE = undefined; //just in case we were connected before.
 
+        let UserCancled = false;
+
         var elapseTime = (Date.now() - this.BLE_DISCONNECT_TIME) / 1000;
         if (elapseTime > 60){
             await window.alertMessage("Error while detecting bluetooth devices. \nPlease refresh the browser and try again.")
@@ -1851,9 +1855,16 @@ class ReplJS{
             this.BLE_DEVICE = device;
         })
         .catch(error => {
+            if(error.code == 8){
+                UserCancled = true;
+                 return;
+            }
             window.alertMessage("*Error connecting to XRP. Please refresh this page and try again");
             console.log('Error: ' + error);
         });
+        
+        if(UserCancled) return;
+
         document.getElementById("IdWaiting_TitleText").innerText = 'Connecting to XRP...';
         UIkit.modal(document.getElementById("IDWaitingParent")).show();
 
