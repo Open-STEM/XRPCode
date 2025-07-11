@@ -1022,6 +1022,9 @@ function registerEditor(_container, state) {
         document.getElementById('IDRunBTN').style.display = "block";
         document.getElementById('IDStopBTN').style.display = "none";
 
+        if(REPL.BLE_DEVICE == undefined){
+            UIkit.modal(document.getElementById("IDWaitingParent")).hide(); //stop the spinner
+        }
 
         if(REPL.RUN_ERROR && REPL.RUN_ERROR.includes("[Errno 2] ENOENT", 0)){
             await window.alertMessage("The program that you were trying to RUN has not been saved to this XRP.<br>To RUN this program save the file to XRP and click RUN again.");
