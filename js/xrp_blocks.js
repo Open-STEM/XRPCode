@@ -1,4 +1,3 @@
-
 /*
     This file creates each Block item for Blockly.
     You can set and update the colors here based off the HUE value.
@@ -619,3 +618,16 @@ Blockly.Blocks['xrp_sleep'] = {
 // Lists --> eggplant purple
 // Variables --> grey
 // Functions --> medium purple
+
+Blockly.Blocks['comment'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField("Comment")
+        .appendField(new Blockly.FieldTextInput(""), "TEXT");
+    this.setColour(60); // yellow
+    this.setPreviousStatement(true, null);
+    this.setNextStatement(true, null);
+    this.setTooltip("Add a comment to your code.");
+    this.setHelpUrl("");
+  }
+};

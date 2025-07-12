@@ -276,6 +276,10 @@ var baseToolbox = {
             "contents": [
                 {
                     "kind": "BLOCK",
+                    "type": "comment"
+                },
+                {
+                    "kind": "BLOCK",
                     "type": "xrp_sleep",
                     "inputs":{
                         "TIME": {"shadow": {"type": "math_number", "fields": {"NUM": "0.5"}}}
@@ -422,7 +426,13 @@ var baseToolbox = {
         },
         {
             "kind": "CATEGORY",
+            "name": "Text",
+            "colour": "#5ba58c", // seafoam green
             "contents": [
+                {
+                    "kind": "BLOCK",
+                    "type": "comment"
+                },
                 {
                     "kind": "BLOCK",
                     "blockxml": "<block type=\"text_print\">\n                <value name=\"TEXT\">\n                  <shadow type=\"text\">\n                    <field name=\"TEXT\">abc</field>\n                  </shadow>\n                </value>\n              </block>",
@@ -483,9 +493,7 @@ var baseToolbox = {
                     "blockxml": "<block type=\"text_prompt_ext\">\n                <mutation type=\"TEXT\"></mutation>\n                <field name=\"TYPE\">TEXT</field>\n                <value name=\"TEXT\">\n                  <shadow type=\"text\">\n                    <field name=\"TEXT\">abc</field>\n                  </shadow>\n                </value>\n              </block>",
                     "type": "text_prompt_ext"
                 }
-            ],
-            "name": "Text",
-            "colour": "#5ba58c" // seafoam green
+            ]
         },
         {
             "kind": "CATEGORY",

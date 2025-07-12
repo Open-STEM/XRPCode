@@ -367,4 +367,9 @@ Blockly.Python['xrp_sleep'] = function (block) {
   return code;
 };
 
+Blockly.Python['comment'] = function(block) {
+  var text = block.getFieldValue('TEXT');
+  return '# ' + text + '\n';
+};
+
 
