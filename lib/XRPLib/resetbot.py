@@ -44,7 +44,7 @@ def reset_hard():
     reset_led()
     reset_servos()
     reset_webserver()
-    
+
 if "XRPLib.gamepad" in sys.modules:
     reset_gamepad()
 
@@ -59,3 +59,4 @@ if "XRPLib.servo" in sys.modules:
 
 if "XRPLib.webserver" in sys.modules:
     reset_webserver()
+
