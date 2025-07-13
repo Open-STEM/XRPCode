@@ -1,16 +1,16 @@
 # Version 1.2.2
 
 ## Gamepad support
-* After updating the XRPLib to version 2.1.2 you can use a gamepad with XRPCode to drive your XRP. The Blocks palette has been updated with gamepad blocks.
+* After updating the XRPLib to version 2.1.3 or greater you can use a gamepad with XRPCode to drive your XRP. The Blocks palette has been updated with gamepad blocks.
 * To drive your XRP you will need a program that responds to the gamepad interactions. There is a very small program in the XRPExamples directory. Be creative and create your own for different types of driving.
-* This can also be done in Python. The API will be documented soon, for now you can use the blocks and then use the view menu to view the Python to get how the API works.
-* We use the standard Web Gamepad support and recognize only one controller. If you want to know if your gamepad will work you can google 'web gamepad tester' there are a few out there that will let you see if your gamepad works.
-* If you don't have a gamepad you can use the keyboard. For the left joystick use WASD keys and for the right joystick use the IJKL keys. The number keys 1 - 0 are used for the buttons, in the same order as the pull down on the button gamepad block. There are no buttons for the D-PAD.
-* There is a current bug that very quick keyboard actions can be missed. Press the key again if a release was missed.
+* We use the standard Web Gamepad support and recognize only one controller. If you want to know if your gamepad will work you can go to this <a href="https://hardwaretester.com/gamepad" target="_blank" style="color: blue;">website</a> that will test if your gamepad is compatible with the web browser.
+* If you don't have a gamepad you can use the keyboard. For the left joystick use WASD keys and for the right joystick use the IJKL keys. The number keys 1 - 0 are used for the buttons, in the same order as the pull down on the button gamepad block. There are no keys for the D-PAD.
 
 ## Waiting dialog box
 We noticed that when connecting and stopping a program via bluetooth that different operating systems and versions take different amounts of time. We now put up a working dialog box to let you know the connection is still being worked on.
 
+## Comment block added
+If you would like to add comments to your Blockly program there is now a comment block. It can be found with the Text blocks.
 
 # Version 1.2.1
 
