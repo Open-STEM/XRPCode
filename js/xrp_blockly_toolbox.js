@@ -276,10 +276,6 @@ var baseToolbox = {
             "contents": [
                 {
                     "kind": "BLOCK",
-                    "type": "comment"
-                },
-                {
-                    "kind": "BLOCK",
                     "type": "xrp_sleep",
                     "inputs":{
                         "TIME": {"shadow": {"type": "math_number", "fields": {"NUM": "0.5"}}}
