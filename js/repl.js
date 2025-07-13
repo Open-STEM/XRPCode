@@ -434,7 +434,7 @@ class ReplJS{
         REPL.STOP = false;
         REPL.BUSY = false; 
         //bug must wait for a bit before trying to reconnect. Known Web Bluetooth bug.
-        await new Promise(r => setTimeout(r, 300));
+        await new Promise(r => setTimeout(r, 400));
         REPL.bleReconnect();
     }
 
@@ -1504,7 +1504,7 @@ class ReplJS{
         let jresp = JSON.parse(response);
         var urls = jresp.urls;
         window.setPercent(1, "Updating XRPLib...");
-        let percent_per = Math.round(99 / (urls.length + window.phewList.length + window.bleList.length + 1));
+        let percent_per = Math.floor(99 / (urls.length + window.phewList.length + window.bleList.length + 1));
         let cur_percent = 1 + percent_per;
 
         await this.deleteFileOrDir("/lib/XRPLib");  //delete all the files first to avoid any confusion.
@@ -1652,6 +1652,8 @@ class ReplJS{
             }
             //try multiple times to get to the prompt
             var gotToPrompt = false;
+            await this.getToNormal();
+            //await this.writeToDevice("\r" + this.CTRL_CMD_NORMALMODE);
             for(let i=0;i<20;i++){
                 this.startReaduntil(">>>");
                 await this.writeToDevice("\r" + this.CTRL_CMD_KINTERRUPT);
