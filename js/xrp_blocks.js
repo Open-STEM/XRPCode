@@ -1,4 +1,3 @@
-
 /*
     This file creates each Block item for Blockly.
     You can set and update the colors here based off the HUE value.
@@ -565,6 +564,36 @@ Blockly.Blocks['xrp_ws_connect_server'] = {
   }
 };
 
+// Gamepad
+
+Blockly.Blocks['xrp_gp_get_value'] = {
+  init: function () {
+    this.appendDummyInput()
+      .appendField("Joystick:")
+      .appendField(new Blockly.FieldDropdown([["X1", "X1"], ["X2", "X2"], ["Y1", "Y1"], ["Y2", "Y2"]]), "GPVALUE")
+    this.setOutput(true, null);
+    this.setColour("#ff9248"); // crimson
+    this.setTooltip("Get the value of a gamepad joystick");
+    this.setHelpUrl("");
+  }
+};
+
+Blockly.Blocks['xrp_gp_button_pressed'] = {
+  init: function () {
+    this.appendDummyInput()
+      .appendField("Button:")
+      .appendField(new Blockly.FieldDropdown([["A", "BUTTON_A"], ["B", "BUTTON_B"], ["X", "BUTTON_X"], ["Y", "BUTTON_Y"], ["Bumper Left", "BUMPER_L"], ["Bumper Right", "BUMPER_R"],
+      ["Trigger Left", "TRIGGER_L"],["Trigger Right", "TRIGGER_R"],["Back", "BACK"], ["Start", "START"], 
+      ["D-PAD Up", "DPAD_UP"],["D-PAD Down", "DPAD_DN"],["D-PAD Left", "DPAD_L"],["D-PAD Right", "DPAD_R"]]), "GPBUTTON")
+      .appendField("Pressed")
+    this.setOutput(true, null);
+    this.setColour("#ff9248"); // crimson
+    this.setTooltip("Check to see if a gamepad button is pressed");
+    this.setHelpUrl("");
+  }
+};
+
+
 // Logic
 Blockly.Blocks['xrp_sleep'] = {
   init: function () {
@@ -589,3 +618,16 @@ Blockly.Blocks['xrp_sleep'] = {
 // Lists --> eggplant purple
 // Variables --> grey
 // Functions --> medium purple
+
+Blockly.Blocks['comment'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField("Comment")
+        .appendField(new Blockly.FieldTextInput(""), "TEXT");
+    this.setColour(60); // yellow
+    this.setPreviousStatement(true, null);
+    this.setNextStatement(true, null);
+    this.setTooltip("Add a comment to your code.");
+    this.setHelpUrl("");
+  }
+};

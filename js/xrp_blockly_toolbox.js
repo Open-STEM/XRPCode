@@ -256,9 +256,28 @@ var baseToolbox = {
                 },
             ]
         },
+        {
+            "kind": "CATEGORY",
+            "name": "Gamepad",
+            "colour": "#ff9248", // turquoise
+            "contents": [
+                {
+                    "kind": "BLOCK",
+                    "type": "xrp_gp_get_value"
+                },
+                {
+                    "kind": "BLOCK",
+                    "type": "xrp_gp_button_pressed"
+                },
+            ]
+        },
          {
             "kind": "CATEGORY",
             "contents": [
+                {
+                    "kind": "BLOCK",
+                    "type": "comment"
+                },
                 {
                     "kind": "BLOCK",
                     "type": "xrp_sleep",
@@ -306,14 +325,20 @@ var baseToolbox = {
             "contents": [
                 {
                     "kind": "BLOCK",
-                    "blockxml": "<block type=\"controls_repeat_ext\">\n                <value name=\"TIMES\">\n                  <shadow type=\"math_number\">\n                    <field name=\"NUM\">10</field>\n                  </shadow>\n                </value>\n              </block>",
-                    "type": "controls_repeat_ext"
+                    "blockxml": "<block type=\"controls_whileUntil\">\n  <field name=\"MODE\">UNTIL</field>\n  <value name=\"BOOL\">\n    <block type=\"xrp_button_pressed\"></block>\n  </value>\n</block>",
+                    "type": "controls_whileUntil"
                 },
                 {
                     "kind": "BLOCK",
                     "blockxml": "<block type=\"controls_whileUntil\">\n                <field name=\"MODE\">WHILE</field>\n              </block>",
                     "type": "controls_whileUntil"
                 },
+                {
+                    "kind": "BLOCK",
+                    "blockxml": "<block type=\"controls_repeat_ext\">\n                <value name=\"TIMES\">\n                  <shadow type=\"math_number\">\n                    <field name=\"NUM\">10</field>\n                  </shadow>\n                </value>\n              </block>",
+                    "type": "controls_repeat_ext"
+                },
+
                 {
                     "kind": "BLOCK",
                     "blockxml": "<block type=\"controls_for\">\n                <field name=\"VAR\" id=\"FgA,0kVszQhxNMx=)la5\">i</field>\n                <value name=\"FROM\">\n                  <shadow type=\"math_number\">\n                    <field name=\"NUM\">1</field>\n                  </shadow>\n                </value>\n                <value name=\"TO\">\n                  <shadow type=\"math_number\">\n                    <field name=\"NUM\">10</field>\n                  </shadow>\n                </value>\n                <value name=\"BY\">\n                  <shadow type=\"math_number\">\n                    <field name=\"NUM\">1</field>\n                  </shadow>\n                </value>\n              </block>",
@@ -401,7 +426,13 @@ var baseToolbox = {
         },
         {
             "kind": "CATEGORY",
+            "name": "Text",
+            "colour": "#5ba58c", // seafoam green
             "contents": [
+                {
+                    "kind": "BLOCK",
+                    "type": "comment"
+                },
                 {
                     "kind": "BLOCK",
                     "blockxml": "<block type=\"text_print\">\n                <value name=\"TEXT\">\n                  <shadow type=\"text\">\n                    <field name=\"TEXT\">abc</field>\n                  </shadow>\n                </value>\n              </block>",
@@ -462,9 +493,7 @@ var baseToolbox = {
                     "blockxml": "<block type=\"text_prompt_ext\">\n                <mutation type=\"TEXT\"></mutation>\n                <field name=\"TYPE\">TEXT</field>\n                <value name=\"TEXT\">\n                  <shadow type=\"text\">\n                    <field name=\"TEXT\">abc</field>\n                  </shadow>\n                </value>\n              </block>",
                     "type": "text_prompt_ext"
                 }
-            ],
-            "name": "Text",
-            "colour": "#5ba58c" // seafoam green
+            ]
         },
         {
             "kind": "CATEGORY",

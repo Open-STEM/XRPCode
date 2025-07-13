@@ -7,7 +7,7 @@ import { configNonBeta } from './nonbetaConfig.js';
          VERSION NUMBERS
 */
 
-const showChangelogVersion = "1.2.1";  //update all instances of ?version= in the index file to match the version. This is needed for local cache busting
+const showChangelogVersion = "1.2.2";  //update all instances of ?version= in the index file to match the version. This is needed for local cache busting
 window.latestMicroPythonVersion = [1, 25, 0];
 
 // this is needed because version 1.25.0 is not released yet and so the version number is not changing. Some boards
@@ -612,7 +612,15 @@ async function downloadFileFromPath(fullFilePaths) {
 var JOY = undefined;
 function registerJoy(_container, state){
     JOY = new Joystick(_container, state);
-    JOY.writeToDevice = (data) => REPL.writeToDevice(data);
+    JOY.writeToDevice = async (data) => { //REPL.writeToDevice(data);
+        if(REPL.DATABLE != undefined){
+            try{
+                await REPL.DATABLE.writeValueWithResponse(data);
+            }catch{
+                console.log("error writing DATABLE data");
+            }
+        }
+    };
     REPL.startJoyPackets = () => JOY.startJoyPackets();
     REPL.stopJoyPackets = () => JOY.stopJoyPackets();
 }
@@ -1014,6 +1022,9 @@ function registerEditor(_container, state) {
         document.getElementById('IDRunBTN').style.display = "block";
         document.getElementById('IDStopBTN').style.display = "none";
 
+        if(REPL.BLE_DEVICE == undefined){
+            UIkit.modal(document.getElementById("IDWaitingParent")).hide(); //stop the spinner
+        }
 
         if(REPL.RUN_ERROR && REPL.RUN_ERROR.includes("[Errno 2] ENOENT", 0)){
             await window.alertMessage("The program that you were trying to RUN has not been saved to this XRP.<br>To RUN this program save the file to XRP and click RUN again.");
@@ -1243,8 +1254,13 @@ async function dialogMessage(message){
     await UIkit.modal(elm).show();
 }
 
+let BASE = window.location.pathname.replace(/\/$/,'');
+if(BASE != ""){
+    BASE += '/'
+}
+
 async function downloadFile(filePath) {
-    let response = await fetch(filePath);
+    let response = await fetch(BASE + filePath);
 
     if(response.status != 200) {
         throw new Error("Server Error");
