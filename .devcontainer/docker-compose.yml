@@ -1,0 +1,12 @@
+version: '3'
+services:
+  xrpcode:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ..:/workspace:cached
+    command: /bin/sh -c "while sleep 1000; do :; done"
+    ports:
+      - "8080:8080"
+      - "443:443"
