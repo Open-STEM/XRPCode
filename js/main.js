@@ -362,6 +362,12 @@ document.getElementById("IDUserGuide").onclick = (event) =>{
     menus_down = false;
     window.open("https://xrpusersguide.readthedocs.io/en/latest/course/introduction.html", "_blank")
 }
+document.getElementById("IDFAQ").onclick = (event) =>{
+    UIkit.dropdown(HELP_DROPDOWN).hide();
+    menus_down = false;
+    window.open("https://xrpusersguide.readthedocs.io/en/latest/course/FAQ.html", "_blank")
+}
+
 document.getElementById("IDAPI").onclick = (event) =>{
     UIkit.dropdown(HELP_DROPDOWN).hide();
     window.open("https://open-stem.github.io/XRP_MicroPython/", "_blank")
@@ -974,7 +980,7 @@ function registerEditor(_container, state) {
         }else{
             if(voltage < 0.45) { //the device must be connected to a USB power with the power switch turned off.
                     if(! await window.confirmMessage("The power switch on the XRP is not on. Motors and Servos will not work.<br>Turn on the switch before continuing." +
-                        "<br><img src==" + image + " width=300>")) {
+                        "<br><img src=" + image + " width=300>")) {
                         return;
                     }
                 
