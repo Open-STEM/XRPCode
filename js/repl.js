@@ -1622,7 +1622,27 @@ class ReplJS{
         var result = await this.haltUntilRead(1, 10); //this should be fast
 
         if (result == undefined){
+            //get to Normal mode as CTRL-C does not work in RAW mode.
+            this.startReaduntil(">>>");
+            await this.writeToDevice(this.CTRL_CMD_NORMALMODE + "\r");  // Make sure we are in Normal mode
+            if(result != undefined){
+                return true;
+            }
 
+            //try multiple times to get to the prompt with CTRL-C as a CTRL-C in a timer loop does not stop the program
+            var gotToPrompt = false;
+            for(let i=0;i<20;i++){
+                this.startReaduntil(">>>");
+                await this.writeToDevice(this.CTRL_CMD_KINTERRUPT + "\r");
+                result = await this.haltUntilRead(2, 5); //this should be fast
+                if(result != undefined){
+                    gotToPrompt = true;
+                    break;
+                }
+            }
+            return gotToPrompt;
+
+            /*
             this.startReaduntil("KeyboardInterrupt:");
             await this.writeToDevice("\r" + this.CTRL_CMD_KINTERRUPT);  // ctrl-C to interrupt any running program
             result = await this.haltUntilRead(1, 20);
@@ -1636,8 +1656,8 @@ class ReplJS{
             }
             //try multiple times to get to the prompt
             var gotToPrompt = false;
-            await this.getToNormal();
-            //await this.writeToDevice("\r" + this.CTRL_CMD_NORMALMODE);
+            //await this.getToNormal();
+            await this.writeToDevice("\r" + this.CTRL_CMD_NORMALMODE);
             for(let i=0;i<20;i++){
                 this.startReaduntil(">>>");
                 await this.writeToDevice("\r" + this.CTRL_CMD_KINTERRUPT);
@@ -1648,6 +1668,7 @@ class ReplJS{
                 }
             }
             return gotToPrompt;
+            */
         }
         return true;
     }
@@ -1852,7 +1873,6 @@ class ReplJS{
 
         document.getElementById("IdWaiting_TitleText").innerText = 'Connecting to XRP...';
         UIkit.modal(document.getElementById("IDWaitingParent")).show();
-
         await this.bleConnect();
         this.BLE_DEVICE.addEventListener('gattserverdisconnected', this.bleDisconnect);
         this.MANNUALLY_CONNECTING = false;
