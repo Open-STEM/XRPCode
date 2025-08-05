@@ -3,6 +3,8 @@
 ## Better connection and program Stopping over bluetooth
 We found a better way for handling the stopping of programs when connected via bluetooth. 
 This will also help when connecting to an XRP that may already be running a program.
+  
+> IMPORTANT: You will not be able to connect via Bluetooth with this version of XRPCode until you update your XRP using a USB cable.
 
 # Version 1.2.2
 
