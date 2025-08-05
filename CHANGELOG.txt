@@ -1,3 +1,9 @@
+# Version 1.2.3
+
+## Better connection and program Stopping over bluetooth
+We found a better way for handling the stopping of programs when connected via bluetooth. 
+This will also help when connecting to an XRP that may already be running a program.
+
 # Version 1.2.2
 
 ## Gamepad support
