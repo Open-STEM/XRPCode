@@ -23,6 +23,7 @@ class ReplJS{
         this.LASTBLEREAD = undefined;
         this.BLE_DATA = null;
         this.BLE_DATA_RESOLVE = null;
+        this.BLE_STOP_MSG  = "##XRPSTOP##"
 
 
          // UUIDs for standard NORDIC UART service and characteristics
@@ -544,6 +545,16 @@ class ReplJS{
                 console.error('ble write failed:', error);
             }
         });
+    }
+
+    //This is writing to cause the XRP to reboot, so we don't expect a response from the BLE. So, we will not ask for one.
+    async writeSTOPtoBleDevice(str){
+        try{
+            await this.WRITEBLE.writeValueWithResponse(this.str2ab(str));  //don't wait since the Windows timeout is long
+        } catch(error){
+            console.error('ble stop write failed:', error);
+            //do nothing we expected an error
+        }
     }
 
     async softReset(){
@@ -1632,6 +1643,11 @@ class ReplJS{
         var result = await this.haltUntilRead(1, 10); //this should be fast
 
         if (result == undefined){
+
+            if(this.BLE_DEVICE != undefined){
+                await this.writeSTOPtoBleDevice(this.BLE_STOP_MSG);
+                return false; 
+            }
 
             this.startReaduntil("KeyboardInterrupt:");
             await this.writeToDevice("\r" + this.CTRL_CMD_KINTERRUPT);  // ctrl-C to interrupt any running program

@@ -5,7 +5,6 @@ import bluetooth
 import struct
 from micropython import const
 from machine import Timer
-from os import dupterm_notify
 
 #Advertise info
 # org.bluetooth.characteristic.gap.appearance.xml
@@ -51,6 +50,10 @@ _UART_SERVICE = (
 
 _timer = Timer(-1)
 
+def delayedRestart(_arg):
+        import machine
+        machine.reset()
+
 class BLEUART:
     def __init__(self, ble, name="mpy-uart", rxbuf=100):
         self._ble = ble
@@ -84,9 +87,14 @@ class BLEUART:
             conn_handle, value_handle = data
             if conn_handle in self._connections and value_handle == self._rx_handle:
                 self._rx_buffer += self._ble.gatts_read(self._rx_handle)
-                dupterm_notify(None) #SUPER IMPORTANT this only works if it is the last thing done in the IRQ handler
-                return 
-                
+                if(self._rx_buffer.find(b'##XRPSTOP#' + b'#') != -1): #WARNING: This is broken up so it won't restart during an update or this file.
+                    self._rx_buffer = bytearray()
+                    # set the bit in isrunning to tell main not to re-run the program so the IDE can connect
+                    FILE_PATH = '/lib/ble/isrunning'
+                    with open(FILE_PATH, 'r+b') as file:
+                        file.write(b'\x01')
+                    # slight delay to avoid errors on the browser side.
+                    _timer.init(mode=Timer.PERIODIC, period=50, callback=delayedRestart)
             elif conn_handle in self._connections and value_handle == self._data_rx_handle:
                 new_data = self._ble.gatts_read(self._data_rx_handle)
                 if self._data_callback:
