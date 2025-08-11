@@ -7,7 +7,7 @@ import { configNonBeta } from './nonbetaConfig.js';
          VERSION NUMBERS
 */
 
-const showChangelogVersion = "1.2.3";  //update all instances of ?version= in the index file to match the version. This is needed for local cache busting
+const showChangelogVersion = "1.2.2";  //update all instances of ?version= in the index file to match the version. This is needed for local cache busting
 window.latestMicroPythonVersion = [1, 25, 0];
 
 // this is needed because version 1.25.0 is not released yet and so the version number is not changing. Some boards
