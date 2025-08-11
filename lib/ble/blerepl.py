@@ -74,11 +74,7 @@ class BLEUARTStream(io.IOBase):
         if self._tx_buf_index >= len(self._tx_buf):
             self._tx_buf = bytearray()
             self._tx_buf_index = 0
-        #if the _uart.write fails that is because we are not attached, so drop the info on 
-        # the floor since the write pump is dependent on notification of the data getting to the destination
-        if not self._uart.write(data):
-            self._tx_buf = bytearray()
-            self._tx_buf_index = 0
+        self._uart.write(data)
 
     def write(self, buf):
         state = disable_irq()

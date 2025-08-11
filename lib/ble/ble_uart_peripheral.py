@@ -110,11 +110,8 @@ class BLEUART:
 
     def write(self, data):
         #print("write:" + data)
-        dataWritten = False
         for conn_handle in self._connections:
             self._ble.gatts_indicate(conn_handle, self._tx_handle, data)
-            dataWritten = True
-        return dataWritten
 
     def write_data(self, data):
         #print("write_data:" + data)
