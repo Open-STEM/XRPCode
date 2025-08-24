@@ -1,0 +1,6 @@
+# These packages are part of the Python standard library
+# No additional packages required for basic functionality
+
+# Optional packages for development
+pyserial>=3.5
+pyopenssl>=23.0.0
