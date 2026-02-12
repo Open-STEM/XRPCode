@@ -1,0 +1,3 @@
+# Ignore requirements.txt during Docker build
+# This prevents auto-added COPY commands from failing
+requirements.txt
