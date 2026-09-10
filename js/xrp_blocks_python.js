@@ -341,6 +341,23 @@ Blockly.Python['xrp_ws_start_server'] = function (block) {
   return code;
 };
 
+// Gamepad
+
+Blockly.Python['xrp_gp_get_value'] = function (block) {
+  PY.definitions_['import_gamepad'] = 'from XRPLib.gamepad import *';
+  PY.definitions_[`gamepad_setup`] = `gp = Gamepad.get_default_gamepad()`;
+  var value = block.getFieldValue("GPVALUE");
+  var code = `gp.get_value(gp.${value})`;
+  return [code , Blockly.Python.ORDER_NONE];
+};
+
+Blockly.Python['xrp_gp_button_pressed'] = function (block) {
+  PY.definitions_['import_gamepad'] = 'from XRPLib.gamepad import *';
+  PY.definitions_[`gamepad_setup`] = `gp = Gamepad.get_default_gamepad()`;
+  var value = block.getFieldValue("GPBUTTON");
+  var code = `gp.is_button_pressed(gp.${value})`;
+  return [code , Blockly.Python.ORDER_NONE];
+};
 
 //Logic
 Blockly.Python['xrp_sleep'] = function (block) {
@@ -348,6 +365,11 @@ Blockly.Python['xrp_sleep'] = function (block) {
   var number_time = Blockly.Python.valueToCode(block, 'TIME', Blockly.Python.ORDER_ATOMIC);
   var code = `time.sleep(${number_time})\n`;
   return code;
+};
+
+Blockly.Python['comment'] = function(block) {
+  var text = block.getFieldValue('TEXT');
+  return '# ' + text + '\n';
 };
 
 

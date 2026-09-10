@@ -18,6 +18,8 @@ _timer = Timer(-1)
 
 waitingForTimer = False
 
+uart = None
+
 #_led = Pin("LED", Pin.OUT) //for debugging
 
 # Batch writes into 50ms intervals.
@@ -85,6 +87,7 @@ class BLEUARTStream(io.IOBase):
             schedule_in(self._timer_handler, 50)
 
 def background_task():
+    global uart
     ble = bluetooth.BLE()
     x = (''.join(['{:02x}'.format(b) for b in unique_id()]))
     uart = BLEUART(ble, name="XRP-" + x[11:], rxbuf = 250)

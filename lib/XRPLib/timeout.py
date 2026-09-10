@@ -1,7 +1,7 @@
 import time
 
 class Timeout:
-    def __init__(self, timeout):
+    def __init__(self, timeout: float):
         """
         Starts a timer that will expire after the given timeout.
 
@@ -9,7 +9,10 @@ class Timeout:
         :type timeout: float
         """
         self.timeout = timeout
-        self.start_time = time.time()
+        if self.timeout != None:
+            self.timeout = timeout*1000
+        
+        self.start_time = time.ticks_ms()
     
     def is_done(self):
         """
@@ -17,4 +20,4 @@ class Timeout:
         """
         if self.timeout is None:
             return False
-        return time.time() - self.start_time > self.timeout
+        return time.ticks_ms() - self.start_time > self.timeout
