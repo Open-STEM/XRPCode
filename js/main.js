@@ -84,7 +84,7 @@ const alreadyToldV2Invite = localStorage.getItem(v2InviteShownKey) === "true";
 const needsV2Invite = !alreadyToldV2Invite || (v2InviteCount % v2InviteRepeatEvery === 0);
 
 const v2InviteMessage = `We would like to give you the opportunity to try out the next version of XRPCode. You can help us by trying out this new version and reporting any issues you find.<br><br>
-<a href="https://xrpcode.wpi.edu/staging/" target="_blank" rel="noopener noreferrer">This link</a> will take you to the new version.<br><br>
+<a href="https://xrpcode.wpi.edu/staging/">This link</a> will take you to the new version.<br><br>
 <a href="https://xrpusersguide.readthedocs.io/en/latest/course/XRPCodeV2.html" target="_blank" rel="noopener noreferrer">This link</a> is the User Guide for this new version.<br><br>
 We will be switching to the new version for everyone in the next few weeks.`;
 
