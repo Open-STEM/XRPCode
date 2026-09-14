@@ -74,19 +74,43 @@ window.bleList = ["__init__.py","blerepl.py", "ble_uart_peripheral.py", "isrunni
 
 window.SHOWMAIN = false;
 
-if(localStorage.getItem("version") == null || localStorage.getItem("version") != showChangelogVersion ){
+const v2InviteShownKey = "xrpcodeV2InviteShown_" + showChangelogVersion;
+const v2InviteCountKey = "xrpcodeV2InviteCount_" + showChangelogVersion;
+const v2InviteRepeatEvery = 10;
 
-    console.log("Updates to IDE! Showing changelog...");    // Show message in console
+let v2InviteCount = parseInt(localStorage.getItem(v2InviteCountKey) || "0", 10) + 1;
+localStorage.setItem(v2InviteCountKey, String(v2InviteCount));
+const alreadyToldV2Invite = localStorage.getItem(v2InviteShownKey) === "true";
+const needsV2Invite = !alreadyToldV2Invite || (v2InviteCount % v2InviteRepeatEvery === 0);
 
-    fetch("CHANGELOG.txt?version=" + showChangelogVersion).then(async (response) => {
-        await response.text().then(async (text) => {
-            await dialogMessage(marked.parse(text));
-        });
-    });
+const v2InviteMessage = `We would like to give you the opportunity to try out the next version of XRPCode. You can help us by trying out this new version and reporting any issues you find.<br><br>
+<a href="https://xrpcode.wpi.edu/staging/" target="_blank" rel="noopener noreferrer">This link</a> will take you to the new version.<br><br>
+<a href="https://xrpusersguide.readthedocs.io/en/latest/course/XRPCodeV2.html" target="_blank" rel="noopener noreferrer">This link</a> is the User Guide for this new version.<br><br>
+We will be switching to the new version for everyone in the next few weeks.`;
 
-    localStorage.setItem("version", showChangelogVersion);       // Set this show not shown on next page load
-   // }
+async function showV2InviteDialog() {
+    await alertMessage(v2InviteMessage);
+    localStorage.setItem(v2InviteShownKey, "true");
 }
+
+const needsChangelog = localStorage.getItem("version") == null || localStorage.getItem("version") != showChangelogVersion;
+if (needsChangelog) {
+    localStorage.setItem("version", showChangelogVersion);       // Set this show not shown on next page load
+}
+
+// Changelog and the V2 invite are shown after the rest of the page starts loading.
+// The invite waits until the changelog is dismissed so the two dialogs do not overlap.
+(async () => {
+    if (needsChangelog) {
+        console.log("Updates to IDE! Showing changelog...");    // Show message in console
+        const response = await fetch("CHANGELOG.txt?version=" + showChangelogVersion);
+        const text = await response.text();
+        await dialogMessage(marked.parse(text));
+    }
+    if (needsV2Invite) {
+        await showV2InviteDialog();
+    }
+})();
 
 // Want the dropdown to disappear if mouse leaves it (doesn't disappear if mouse leaves button that starts it though)
 //document.getElementById("IDUtilitesDropdown").addEventListener("mouseleave", () => {
@@ -1257,7 +1281,12 @@ async function dialogMessage(message){
     elm3.setAttribute("uk-overflow-auto","");
     elm3.innerHTML = marked.parse(message);
     elm2.appendChild(elm3);
-    await UIkit.modal(elm).show();
+    const modal = UIkit.modal(elm);
+    const hidden = new Promise((resolve) => {
+        elm.addEventListener("hidden", resolve, { once: true });
+    });
+    await modal.show();
+    await hidden;
 }
 
 let BASE = window.location.pathname.replace(/\/$/,'');
