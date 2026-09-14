@@ -171,3 +171,16 @@
   height: 15px;
   fill: white;
 }
+
+/* Keep links readable on white UIkit dialogs. The global a:visited
+   color is white for the dark editor chrome. */
+.uk-modal a,
+.uk-modal a:link,
+.uk-modal a:visited {
+  color: #1e87f0;
+}
+.uk-modal a:hover,
+.uk-modal a:active,
+.uk-modal a:visited:hover {
+  color: #0f6ecd;
+}
