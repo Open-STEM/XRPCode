@@ -115,6 +115,7 @@ class EditorWrapper{
         this.onOpen = undefined;
         this.onConvert = undefined;
         this.onDownloadFile = undefined;
+        this.onDeleteNonLibFiles = undefined;
         this.addNewEditor = undefined;
 
         // Make sure mouse down anywhere on panel focuses the panel

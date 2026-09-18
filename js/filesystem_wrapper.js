@@ -126,6 +126,7 @@ class FILESYSTEM{
         this.onUploadFiles = undefined;
         this.onRefresh = undefined;
         this.onDownloadFiles = undefined;
+        this.onDeleteNonLibFiles = undefined;
         // this.onNewFile = undefined;
 
 

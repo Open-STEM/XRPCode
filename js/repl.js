@@ -872,6 +872,38 @@ class ReplJS{
         await this.getOnBoardFSTree();
     }
 
+    async deleteNonLibFiles(){
+                if(this.BUSY == true){
+            return;
+        }
+        this.BUSY = true;
+
+        var cmd =   "import os\n" +
+                    "def rm(d):  # Remove file or tree\n" +
+                    "   try:\n" +
+                    "       if os.stat(d)[0] & 0x4000:  # Dir\n" +
+                    "           for f in os.ilistdir(d):\n" +
+                    "               if f[0] not in ('.', '..'):\n" +
+                    "                   rm('/'.join((d, f[0])))  # File or Dir\n" +
+                    "           os.rmdir(d)\n" +
+                    "       else:  # File\n" +
+                    "           os.remove(d)\n" +
+                    "       print('rm_worked')\n" +
+                    "   except:\n" +
+                    "       print('rm_failed')\n" +
+                    "filelist = os.listdir('/')\n" +
+                    "for f in filelist:\n" +
+                    "if f != 'lib' and f != 'trash' and f!= 'XRPExamples'" +
+                    "    rm('/' + f)\n";
+
+        await this.writeUtilityCmdRaw(cmd, true, 1);
+
+        // Get back into normal mode and omit the 3 lines from the normal message,
+        // don't want to repeat (assumes already on a normal prompt)
+        await this.getToNormal(3);
+        this.BUSY = false;
+    }
+
 
     // Given a path, delete it on RP2040
     async deleteFileOrDir(path){
