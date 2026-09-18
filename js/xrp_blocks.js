@@ -610,6 +610,24 @@ Blockly.Blocks['xrp_sleep'] = {
   }
 };
 
+// Math
+Blockly.Blocks['xrp_deadband'] = {
+  init: function () {
+    this.appendDummyInput()
+      .appendField("set the value:");
+    this.appendValueInput("VALUE")
+      .setCheck("Number");
+    this.appendValueInput("DEADBAND")
+      .setCheck("Number")
+      .appendField("to 0 if the value is less than:");
+    this.setInputsInline(true);
+    this.setOutput(true, "Number");
+    this.setColour(230); // indigo
+    this.setTooltip("Sets the value to 0 if it is within the deadband range, which is useful for filtering drift from joysticks");
+    this.setHelpUrl("");
+  }
+}
+
 // OTHER BLOCK COLORS - These colors can be found in the xrp_blockly_toolbox1.js file
 // BLOCK TYPE --> COLOR
 // Loops --> grass green

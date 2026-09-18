@@ -367,6 +367,14 @@ Blockly.Python['xrp_sleep'] = function (block) {
   return code;
 };
 
+//Math
+Blockly.Python['xrp_deadband'] = function (block) {
+  var number_value = Blockly.Python.valueToCode(block, 'VALUE', Blockly.Python.ORDER_ATOMIC);
+  var number_deadband = Blockly.Python.valueToCode(block, 'DEADBAND', Blockly.Python.ORDER_ATOMIC);
+  var code = `(${number_value} if abs(${number_value}) > ${number_deadband} else 0)`;
+  return [code, Blockly.Python.ORDER_ATOMIC];
+}
+
 Blockly.Python['comment'] = function(block) {
   var text = block.getFieldValue('TEXT');
   return '# ' + text + '\n';

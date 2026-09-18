@@ -415,6 +415,14 @@ var baseToolbox = {
                 {
                     "kind": "BLOCK",
                     "type": "math_random_float"
+                },
+                {
+                    "kind": "BLOCK",
+                    "type": "xrp_deadband",
+                    "inputs":{
+                        "VALUE": {"shadow": {"type": "math_number", "fields": {"NUM": "1"}}},
+                        "DEADBAND": {"shadow": {"type": "math_number", "fields": {"NUM": "0.1"}}}
+                    }
                 }
             ],
             "name": "Math",
